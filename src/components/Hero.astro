@@ -258,11 +258,22 @@ const { subtitle, description, btn_linkedin, btn_cv, cv_path } = Astro.props;
 
     startGlow();
 
-    // 6. Observer unificado para cambios de tema
+    // 6. Observer unificado — solo reacciona si el tema realmente cambió
+    let lastTheme = document.documentElement.classList.contains('light')
+      ? 'light'
+      : 'dark';
+
     const themeObserver = new MutationObserver(() => {
-      startGlow();
-      initCanvas();
+      const currentTheme = document.documentElement.classList.contains('light')
+        ? 'light'
+        : 'dark';
+      if (currentTheme !== lastTheme) {
+        lastTheme = currentTheme;
+        startGlow();
+        initCanvas();
+      }
     });
+
     themeObserver.observe(document.documentElement, {
       attributeFilter: ['class'],
     });
