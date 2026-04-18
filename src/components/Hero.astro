@@ -263,19 +263,26 @@ const { subtitle, description, btn_linkedin, btn_cv, cv_path } = Astro.props;
       ? 'light'
       : 'dark';
 
-    const themeObserver = new MutationObserver(() => {
-      const currentTheme = document.documentElement.classList.contains('light')
-        ? 'light'
-        : 'dark';
-      if (currentTheme !== lastTheme) {
-        lastTheme = currentTheme;
-        startGlow();
-        initCanvas();
+    const themeObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        // Solo reacciona si la clase 'light' específicamente cambió
+        const oldClasses = mutation.oldValue ?? '';
+        const newClasses = document.documentElement.className;
+
+        const wasLight = oldClasses.includes('light');
+        const isNowLight = newClasses.includes('light');
+
+        if (wasLight !== isNowLight) {
+          lastTheme = isNowLight ? 'light' : 'dark';
+          startGlow();
+          initCanvas();
+        }
       }
     });
 
     themeObserver.observe(document.documentElement, {
       attributeFilter: ['class'],
+      attributeOldValue: true, // ← guarda el valor anterior para comparar
     });
 
     // 7. Efecto magnético en botones
