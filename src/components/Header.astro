@@ -1,0 +1,283 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
+const switchTo = lang === 'es' ? 'en' : 'es';
+
+// Construirlo más simple y directo
+const switchPath = `/${switchTo}`;
+
+const items =
+  lang === 'es'
+    ? [
+        { nombre: 'Inicio', href: '#inicio' },
+        { nombre: 'Sobre mí', href: '#sobre-mi' },
+        { nombre: 'Tecnologías', href: '#tecnologias' },
+        { nombre: 'Proyectos', href: '#proyectos' },
+        { nombre: 'Experiencia', href: '#experiencia' },
+        { nombre: 'Contacto', href: '#contacto' },
+      ]
+    : [
+        { nombre: 'Home', href: '#inicio' },
+        { nombre: 'About', href: '#sobre-mi' },
+        { nombre: 'Technologies', href: '#tecnologias' },
+        { nombre: 'Projects', href: '#proyectos' },
+        { nombre: 'Experience', href: '#experiencia' },
+        { nombre: 'Contact', href: '#contacto' },
+      ];
+---
+
+<nav
+  id="navbar"
+  class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent"
+>
+  <div class="max-w-7xl mx-auto px-6 py-5" id="nav-container">
+    <div class="flex items-center justify-between">
+      <a
+        href="#inicio"
+        id="nav-logo"
+        class="text-secondary z-50 font-bold text-2xl tracking-tighter"
+      >
+        JH<span class="text-primary">.</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-1">
+        {
+          items.map((item) => (
+            <a
+              href={item.href}
+              class="nav-link text-gris-claro px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            >
+              {item.nombre}
+            </a>
+          ))
+        }
+
+        <!-- Botón de idioma -->
+
+        <a
+          id="idioma"
+          href={switchPath}
+          class="ml-4 px-3 py-1 text-sm font-medium border border-borde text-gris-claro hover:text-primary hover:border-primary transition-colors rounded-full"
+        >
+          {lang === 'es' ? 'EN' : 'ES'}
+        </a>
+
+        <button
+          id="theme-toggle"
+          class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-primary hover:border-primary transition-colors rounded-full"
+          aria-label="Cambiar tema"
+        >
+          <span id="theme-icon">☀</span>
+        </button>
+      </div>
+
+      <button
+        id="menuBtn"
+        class="md:hidden text-blanco p-2 z-50 focus:outline-none"
+        aria-label="Menu"
+      >
+        <div id="btn-icon" class="relative w-6 h-6">
+          <span class="linea absolute w-6 h-0.5 bg-blanco top-1"></span>
+          <span class="linea absolute w-6 h-0.5 bg-blanco top-3"></span>
+          <span class="linea absolute w-6 h-0.5 bg-blanco top-5"></span>
+        </div>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Menú móvil -->
+<div
+  id="mobileMenu"
+  class="fixed inset-0 bg-black/95 backdrop-blur-xl z-40 hidden md:hidden"
+>
+  <div class="flex flex-col items-center justify-center h-full gap-6 px-6">
+    {
+      items.map((item) => (
+        <a
+          href={item.href}
+          class="mobile-link text-3xl font-bold text-gris-claro hover:text-primary transition-colors"
+        >
+          {item.nombre}
+        </a>
+      ))
+    }
+    <a href={switchPath} class="mt-4 text-xl font-bold text-primary">
+      {lang === 'es' ? 'English' : 'Español'}
+    </a>
+
+    <button
+      id="theme-toggle-mobile"
+      class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-primary hover:border-primary transition-colors rounded-full"
+      aria-label="Cambiar tema"
+    >
+      <span id="theme-icon-mobile">☀</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  import gsap from 'gsap';
+
+  function initHeader() {
+    const nav = document.getElementById('navbar');
+    const navContainer = document.getElementById('nav-container');
+    const btn = document.getElementById('menuBtn');
+    const menu = document.getElementById('mobileMenu');
+    const mobileLinks = document.querySelectorAll('.mobile-link');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const lineas = document.querySelectorAll('.linea');
+
+    let isMenuOpen = false;
+
+    const initLoad = () => {
+      const tl = gsap.timeline();
+      tl.from('#navbar', { y: -100, duration: 1.2, ease: 'expo.out' })
+        .from('#nav-logo', { opacity: 0, x: -20, duration: 0.5 }, '-=0.7')
+        .from(
+          '.nav-link',
+          {
+            opacity: 0,
+            y: -10,
+            stagger: 0.1,
+            duration: 0.5,
+            ease: 'power2.out',
+          },
+          '-=0.5',
+        )
+        .from(
+          '#idioma',
+          { opacity: 0, y: -10, duration: 0.5, ease: 'power2.out' },
+          '-=0.4',
+        )
+        .from(
+          '#theme-toggle',
+          { opacity: 0, y: -10, duration: 0.5, ease: 'power2.out' },
+          '-=0.4',
+        );
+    };
+
+    const menuTl = gsap.timeline({ paused: true });
+    menuTl
+      .to(menu, { display: 'block', opacity: 1, duration: 0.1 })
+      .from(menu, { yPercent: -100, duration: 0.6, ease: 'expo.inOut' })
+      .from(mobileLinks, {
+        y: 30,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 0.4,
+        ease: 'power3.out',
+      })
+      .to(lineas[1], { opacity: 0, duration: 0.2 }, '-=0.6')
+      .to(lineas[0], { rotation: 45, y: 8, duration: 0.2 }, '-=0.6')
+      .to(lineas[2], { rotation: -45, y: -8, duration: 0.2 }, '-=0.6');
+
+    btn?.addEventListener('click', () => {
+      if (!isMenuOpen) {
+        menuTl.play();
+      } else {
+        menuTl.reverse();
+      }
+      isMenuOpen = !isMenuOpen;
+    });
+
+    mobileLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        menuTl.reverse();
+        isMenuOpen = false;
+      });
+    });
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        gsap.to(nav, {
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          backdropFilter: 'blur(12px)',
+          borderBottomColor: 'rgba(255,255,255,0.1)',
+          duration: 0.4,
+        });
+        gsap.to(navContainer, { py: 3, duration: 0.4 });
+      } else {
+        gsap.to(nav, {
+          backgroundColor: 'transparent',
+          backdropFilter: 'blur(0px)',
+          borderBottomColor: 'transparent',
+          duration: 0.4,
+        });
+        gsap.to(navContainer, { py: 5, duration: 0.4 });
+      }
+    });
+
+    navLinks.forEach((link) => {
+      link.addEventListener('mouseenter', () => {
+        const isLight = document.documentElement.classList.contains('light');
+        gsap.to(link, {
+          backgroundColor: 'rgba(74,85,104,0.1)',
+          color: isLight ? 'var(--color-primary)' : '#ffffff',
+          y: -2,
+          duration: 0.3,
+        });
+      });
+      link.addEventListener('mouseleave', () => {
+        gsap.to(link, {
+          backgroundColor: 'transparent',
+          color: 'var(--color-gris-claro)',
+          y: 0,
+          duration: 0.3,
+        });
+      });
+    });
+
+    // Tema
+    const themeBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeBtnMobile = document.getElementById('theme-toggle-mobile');
+    const themeIconMobile = document.getElementById('theme-icon-mobile');
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.toggle('light');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+      if (themeIcon) themeIcon.textContent = isLight ? '☾' : '☀';
+      if (themeIconMobile) themeIconMobile.textContent = isLight ? '☾' : '☀';
+    }
+
+    themeBtn?.addEventListener('click', toggleTheme);
+    themeBtnMobile?.addEventListener('click', toggleTheme);
+
+    initLoad();
+  }
+
+  function applyTheme() {
+    const saved = localStorage.getItem('theme');
+    const icon = document.getElementById('theme-icon');
+    const iconMobile = document.getElementById('theme-icon-mobile');
+    if (saved === 'light') {
+      document.documentElement.classList.add('light');
+      if (icon) icon.textContent = '☾';
+      if (iconMobile) iconMobile.textContent = '☾';
+    } else {
+      document.documentElement.classList.remove('light');
+      if (icon) icon.textContent = '☀';
+      if (iconMobile) iconMobile.textContent = '☀';
+    }
+  }
+
+  applyTheme();
+  initHeader();
+  document.addEventListener('astro:page-load', () => {
+    applyTheme();
+    initHeader();
+  });
+</script>
+
+<style>
+  /* Prevenir saltos visuales antes de que cargue GSAP */
+  #mobileMenu {
+    opacity: 0;
+  }
+
+  .nav-link {
+    transition: color 0.3s ease;
+  }
+</style>

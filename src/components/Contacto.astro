@@ -1,0 +1,368 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const socialLinks = [
+  {
+    name: 'GitHub',
+    icon: 'mdi:github',
+    href: 'https://github.com/juanestebanH',
+  },
+  {
+    name: 'LinkedIn',
+    icon: 'mdi:linkedin',
+    href: 'https://linkedin.com/in/juan-esteban-hoyos-0b60912b4',
+  },
+];
+
+interface Props {
+  title: string;
+  subtitle: string;
+  description: string;
+  btn_email: string;
+  formulario_nombre: string;
+  formulario_email: string;
+  formulario_mensaje: string;
+}
+const {
+  title,
+  subtitle,
+  description,
+  btn_email,
+  formulario_nombre,
+  formulario_email,
+  formulario_mensaje,
+} = Astro.props;
+---
+
+<!-- Toast container -->
+<div
+  id="toast-container"
+  class="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"
+>
+</div>
+
+<section id="contacto" class="min-h-screen py-20 px-6 relative">
+  <div class="max-w-7xl mx-auto relative z-10">
+    <div class="text-start mb-16">
+      <h2 class="contact-title text-blanco mb-4">{title}</h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <div>
+        <div class="bg-negro-claro p-8 shadow-[8px_8px_0_black]">
+          <form id="contact-form" class="space-y-6">
+            <div class="contact-field">
+              <label class="block text-gris-claro mb-2"
+                >{formulario_nombre}</label
+              >
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="Tu nombre"
+                class="contact-input w-full p-3 border-b-4 border-black text-blanco outline-none"
+              />
+            </div>
+
+            <div class="contact-field">
+              <label class="block text-gris-claro mb-2"
+                >{formulario_email}</label
+              >
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="tu@email.com"
+                class="contact-input w-full p-3 border-b-4 border-black text-blanco outline-none"
+              />
+            </div>
+
+            <div class="contact-field">
+              <label class="block text-gris-claro mb-2"
+                >{formulario_mensaje}</label
+              >
+              <textarea
+                name="message"
+                rows="5"
+                required
+                placeholder="Cuéntame sobre tu proyecto..."
+                class="contact-input w-full p-3 border-b-4 border-black resize-none text-blanco outline-none"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              class="contact-btn w-full bg-primary text-blanco py-4 border-4 border-black
+                     shadow-[4px_4px_0_black] transition-all duration-200
+                     flex items-center justify-center gap-2 mb-6"
+            >
+              <Icon name="mdi:send" class="w-5 h-5" />
+              {btn_email}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="contact-right space-y-6 flex flex-col justify-center">
+        <div class="contact-box bg-negro-claro p-8 shadow-[8px_8px_0_black]">
+          <h3 class="text-blanco mb-4">{subtitle}</h3>
+          <p class="text-gris-claro">
+            {description}
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          {
+            socialLinks.map((social) => (
+              <a
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="social-card"
+              >
+                <div class="bg-negro-claro p-6 shadow-[4px_4px_0_black] transition-all duration-200 flex flex-col items-center justify-center text-center min-h-35">
+                  <div class="social-icon w-14 h-14 mb-3 rounded-lg border-2 border-black flex items-center justify-center bg-primary">
+                    <Icon name={social.icon} class="w-7 h-7 text-blanco" />
+                  </div>
+                  <span class="social-text text-secondary">{social.name}</span>
+                </div>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import emailjs from '@emailjs/browser';
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { animateSectionTitleScroll } from '../util/animations';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ── Toast system ──────────────────────────────────────────
+  type ToastType = 'success' | 'error' | 'loading';
+
+  function showToast(
+    message: string,
+    type: ToastType = 'success',
+  ): HTMLElement {
+    const container = document.getElementById('toast-container')!;
+
+    const icons: Record<ToastType, string> = {
+      success: '✅',
+      error: '❌',
+      loading: '⏳',
+    };
+
+    const colors: Record<ToastType, string> = {
+      success: '#22c55e',
+      error: '#ef4444',
+      loading: '#a0a0a0',
+    };
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 14px 20px;
+      border: 3px solid black;
+      box-shadow: 4px 4px 0 black;
+      font-size: 14px;
+      font-weight: 500;
+      pointer-events: all;
+      opacity: 0;
+      transform: translateX(60px);
+      border-left: 5px solid ${colors[type]};
+      min-width: 260px;
+    `;
+
+    toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+    container.appendChild(toast);
+
+    // Entrada con GSAP
+    gsap.to(toast, {
+      opacity: 1,
+      x: 0,
+      duration: 0.4,
+      ease: 'power3.out',
+    });
+
+    return toast;
+  }
+
+  function dismissToast(toast: HTMLElement, delay = 0) {
+    gsap.to(toast, {
+      opacity: 0,
+      x: 60,
+      duration: 0.3,
+      delay,
+      ease: 'power3.in',
+      onComplete: () => toast.remove(),
+    });
+  }
+
+  // ── Contacto ──────────────────────────────────────────────
+  function initContact() {
+    const form = document.getElementById(
+      'contact-form',
+    ) as HTMLFormElement | null;
+    const contactSection = document.querySelector('#contacto');
+
+    if (!form) return;
+
+    animateSectionTitleScroll('.contact-title', '#contacto');
+
+    gsap.fromTo(
+      '.contact-field, .contact-btn',
+      { y: 30, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        stagger: 0.12,
+        duration: 0.7,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: contactSection,
+          start: 'top 80%',
+          toggleActions: 'play none none reset',
+        },
+      },
+    );
+
+    gsap.from('.contact-right', {
+      x: 80,
+      opacity: 0,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.contact-right',
+        start: 'top 82%',
+        toggleActions: 'play none none reset',
+      },
+    });
+
+    gsap.from('.social-card', {
+      y: 25,
+      opacity: 0,
+      stagger: 0.15,
+      duration: 0.7,
+      delay: 0.2,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.contact-right',
+        start: 'top 82%',
+        toggleActions: 'play none none reset',
+      },
+    });
+
+    const socials = document.querySelectorAll('.social-card');
+
+    socials.forEach((card) => {
+      const icon = card.querySelector('.social-icon');
+      const text = card.querySelector('.social-text');
+      const box = card.firstElementChild;
+
+      card.addEventListener('mouseenter', () => {
+        gsap.to(box, {
+          y: -8,
+          scale: 1.03,
+          boxShadow: '8px 8px 0 black',
+          duration: 0.25,
+          ease: 'power2.out',
+        });
+        gsap.to(icon, { rotate: 8, scale: 1.1, duration: 0.25 });
+        gsap.to(text, { color: '#ffffff', duration: 0.25 });
+      });
+
+      card.addEventListener('mouseleave', () => {
+        gsap.to(box, {
+          y: 0,
+          scale: 1,
+          boxShadow: '4px 4px 0 black',
+          duration: 0.25,
+          ease: 'power2.out',
+        });
+        gsap.to(icon, { rotate: 0, scale: 1, duration: 0.25 });
+        gsap.to(text, { color: '', duration: 0.25 });
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentForm = e.currentTarget as HTMLFormElement;
+      const button = currentForm.querySelector('button');
+
+      if (button) button.disabled = true;
+
+      const loadingToast = showToast('Enviando mensaje...', 'loading');
+
+      try {
+        await emailjs.sendForm(
+          'service_27ecmm7',
+          'template_1ujbt2e',
+          currentForm,
+          '8XOsc6JgD28fsiEwo',
+        );
+
+        dismissToast(loadingToast);
+        const successToast = showToast(
+          'Mensaje enviado con éxito 🎉',
+          'success',
+        );
+        dismissToast(successToast, 3);
+
+        currentForm.reset();
+
+        if (button) {
+          gsap.fromTo(
+            button,
+            { scale: 1 },
+            { scale: 1.08, yoyo: true, repeat: 1, duration: 0.18 },
+          );
+        }
+      } catch (error) {
+        dismissToast(loadingToast);
+        const errorToast = showToast(
+          'Ocurrió un error, intenta de nuevo',
+          'error',
+        );
+        dismissToast(errorToast, 3);
+
+        gsap.fromTo(
+          currentForm,
+          { x: -8 },
+          { x: 8, repeat: 5, yoyo: true, duration: 0.05 },
+        );
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initContact);
+  initContact();
+
+  document.addEventListener('astro:before-preparation', () => {
+    ScrollTrigger.getAll().forEach((t) => t.kill());
+  });
+</script>
+
+<style>
+  .contact-input:focus {
+    border-color: #4a5568;
+  }
+
+  .contact-btn,
+  .contact-field,
+  .social-card,
+  .contact-box {
+    will-change: transform, opacity;
+  }
+</style>

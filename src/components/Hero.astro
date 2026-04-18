@@ -1,0 +1,319 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+  subtitle: string;
+  description: string;
+  btn_linkedin: string;
+  btn_cv: string;
+  cv_path: string;
+}
+const { subtitle, description, btn_linkedin, btn_cv, cv_path } = Astro.props;
+---
+
+<section
+  id="inicio"
+  class="min-h-screen relative flex items-center justify-center overflow-hidden"
+  data-subtitle={subtitle}
+  data-description={description}
+>
+  <canvas id="dotsCanvas" class="absolute inset-0 z-0 pointer-events-none"
+  ></canvas>
+
+  <div class="absolute inset-0 cn-pattern-grid pointer-events-none z-0"></div>
+
+  <div class="relative z-10 text-center px-6 max-w-4xl">
+    <h1 class="text-blanco mb-4 text-6xl font-bold hero-title">Juan Hoyos</h1>
+
+    <div class="inline-block">
+      <h3 class="text-gris-claro text-2xl hero-subtitle">
+        {subtitle}
+      </h3>
+    </div>
+
+    <p class="mt-8 text-gris-oscuro mx-auto max-w-lg text-lg hero-text">
+      {description}
+    </p>
+
+    <div class="mt-12 flex gap-4 justify-center flex-wrap hero-buttons">
+      <a
+        href="https://www.linkedin.com/in/juan-esteban-hoyos-0b60912b4/"
+        target="_blank"
+        class="flex items-center gap-2 bg-primary text-blanco px-8 py-4 border-2 border-borde shadow-[4px_4px_0_black] hover:shadow-[6px_6px_0_black] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 cursor-pointer"
+      >
+        <Icon name="mdi:linkedin" class="w-5 h-5" />
+        {btn_linkedin}
+      </a>
+
+      <a
+        href={cv_path}
+        download="CV_JuanHoyos.pdf"
+        class="bg-transparent text-blanco px-8 py-4 border-4 border-borde shadow-[4px_4px_0_black] hover:shadow-[6px_6px_0_black] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 cursor-pointer"
+      >
+        {btn_cv}
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+
+  function initHero() {
+    const banner = document.getElementById('inicio') as HTMLElement;
+    const canvas = document.getElementById('dotsCanvas') as HTMLCanvasElement;
+
+    if (!banner || !canvas) return;
+
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    if (!ctx) return;
+
+    interface Dot {
+      x: number;
+      y: number;
+      size: number;
+      color: string;
+      vx: number;
+      vy: number;
+    }
+
+    let dots: Dot[] = [];
+
+    function getColors() {
+      const isLight = document.documentElement.classList.contains('light');
+      return isLight
+        ? ['#333333', '#555555', '#777777', '#999999']
+        : ['#eeeeee', '#666666', '#444444', '#333333'];
+    }
+
+    let mouse: { x: number | null; y: number | null } = { x: null, y: null };
+
+    const initCanvas = () => {
+      canvas.width = banner.offsetWidth;
+      canvas.height = banner.offsetHeight;
+      dots = [];
+      const arrayColors = getColors();
+      for (let i = 0; i < 90; i++) {
+        dots.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2 + 1,
+          color: arrayColors[Math.floor(Math.random() * arrayColors.length)],
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+        });
+      }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      dots.forEach((dot) => {
+        dot.x += dot.vx;
+        dot.y += dot.vy;
+        if (dot.x < 0 || dot.x > canvas.width) dot.vx *= -1;
+        if (dot.y < 0 || dot.y > canvas.height) dot.vy *= -1;
+
+        ctx.fillStyle = dot.color;
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, dot.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (mouse.x !== null && mouse.y !== null) {
+          const dx = mouse.x - dot.x;
+          const dy = mouse.y - dot.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 250) {
+            ctx.strokeStyle = dot.color;
+            ctx.globalAlpha = 1 - distance / 250;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(dot.x, dot.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+      });
+      requestAnimationFrame(draw);
+    };
+
+    banner.addEventListener('mousemove', (e) => {
+      const rect = banner.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+    banner.addEventListener('mouseleave', () => {
+      mouse.x = null;
+      mouse.y = null;
+    });
+    window.addEventListener('resize', initCanvas);
+    initCanvas();
+    draw();
+
+    // ── ANIMACIONES ──────────────────────────────────────────
+
+    const NAME = 'Juan Hoyos';
+    const SUBTITLE = banner.dataset.subtitle ?? 'Desarrollador Full Stack';
+
+    // 1. Partir h1 en chars
+    const h1 = document.querySelector('.hero-title') as HTMLElement;
+    h1.innerHTML = NAME.split('')
+      .map((ch) =>
+        ch === ' '
+          ? '<span style="display:inline-block;width:0.3em"></span>'
+          : `<span class="hero-char" style="display:inline-block">${ch}</span>`,
+      )
+      .join('');
+
+    // 2. Subtítulo typewriter
+    const sub = document.querySelector('.hero-subtitle') as HTMLElement;
+    const subText = SUBTITLE;
+    sub.innerHTML = `
+      <span class="sub-line" style="display:inline-block;width:0;height:1px;background:#555;vertical-align:middle;margin-right:10px"></span>
+      <span class="sub-type" style="overflow:hidden;white-space:nowrap;display:inline-block"></span>
+      <span class="sub-line" style="display:inline-block;width:0;height:1px;background:#555;vertical-align:middle;margin-left:10px"></span>
+    `;
+    sub.style.opacity = '1';
+
+    const chars = document.querySelectorAll<HTMLElement>('.hero-char');
+
+    // 3. Estado inicial
+    gsap.set(chars, { opacity: 0, y: '110%', rotation: 6 });
+    gsap.set('.sub-line', { width: 0 });
+    gsap.set('.sub-type', { opacity: 0 });
+    gsap.set('.hero-text', { opacity: 0, y: 16 });
+    gsap.set('.hero-buttons a', { opacity: 0, y: 20 });
+
+    // 4. Timeline
+    const tl = gsap.timeline({ delay: 0.2 });
+
+    tl.to(chars, {
+      opacity: 1,
+      y: 0,
+      rotation: 0,
+      stagger: 0.08,
+      duration: 1,
+      ease: 'back.out(2)',
+    })
+      .to(
+        '.sub-line',
+        {
+          width: 40,
+          duration: 0.5,
+          ease: 'expo.out',
+          stagger: 0.05,
+        },
+        '-=0.1',
+      )
+      .call(
+        () => {
+          const el = document.querySelector('.sub-type') as HTMLElement;
+          gsap.set(el, { opacity: 1 });
+          let i = 0;
+          const iv = setInterval(() => {
+            el.textContent = subText.slice(0, i + 1);
+            i++;
+            if (i >= subText.length) clearInterval(iv);
+          }, 38);
+        },
+        [],
+        '-=0.2',
+      )
+      .to(
+        '.hero-text',
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.7,
+          ease: 'power2.out',
+        },
+        '+=0.8',
+      )
+      .to(
+        '.hero-buttons a',
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.12,
+          duration: 0.5,
+          ease: 'back.out(1.5)',
+        },
+        '-=0.3',
+      );
+
+    // 5. Glow respirando
+    function startGlow() {
+      const isLight = document.documentElement.classList.contains('light');
+      gsap.killTweensOf('.hero-title', 'textShadow');
+      gsap.to('.hero-title', {
+        textShadow: isLight
+          ? '0 0 30px rgba(74,85,104,0.35)'
+          : '0 0 30px rgba(255,255,255,0.25)',
+        repeat: -1,
+        yoyo: true,
+        duration: 2.5,
+        ease: 'sine.inOut',
+      });
+    }
+
+    startGlow();
+
+    // 6. Observer unificado para cambios de tema
+    const themeObserver = new MutationObserver(() => {
+      startGlow();
+      initCanvas();
+    });
+    themeObserver.observe(document.documentElement, {
+      attributeFilter: ['class'],
+    });
+
+    // 7. Efecto magnético en botones
+    const buttons = document.querySelectorAll<HTMLElement>('.hero-buttons a');
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('mousemove', (e: MouseEvent) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        gsap.to(btn, {
+          x: x * 0.3,
+          y: y * 0.3,
+          duration: 0.4,
+          ease: 'power2.out',
+        });
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        gsap.to(btn, {
+          x: 0,
+          y: 0,
+          duration: 0.6,
+          ease: 'elastic.out(1, 0.4)',
+        });
+      });
+
+      btn.addEventListener('mousedown', () => {
+        gsap.to(btn, { scale: 0.94, duration: 0.1 });
+      });
+
+      btn.addEventListener('mouseup', () => {
+        gsap.to(btn, { scale: 1, duration: 0.3, ease: 'back.out(2)' });
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHero);
+  } else {
+    initHero();
+  }
+
+  document.addEventListener('astro:page-load', initHero);
+</script>
+
+<style>
+  /* Asegura que el canvas no interfiera con el scroll */
+  #dotsCanvas {
+    pointer-events: none;
+  }
+</style>

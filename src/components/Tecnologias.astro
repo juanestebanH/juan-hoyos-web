@@ -1,0 +1,175 @@
+---
+import { Icon } from 'astro-icon/components';
+
+const technologies = [
+  { name: 'HTML/CSS', icon: 'mdi:language-html5' },
+  { name: 'React', icon: 'mdi:react' },
+  { name: 'Tailwind CSS', icon: 'mdi:tailwind' },
+  { name: 'Node.js', icon: 'mdi:nodejs' },
+  { name: 'MySQL', icon: 'mdi:database' },
+  { name: 'JavaScript', icon: 'mdi:language-javascript' },
+  { name: 'Python', icon: 'mdi:language-python' },
+  { name: 'Git', icon: 'mdi:git' },
+  { name: 'PHP', icon: 'mdi:language-php' },
+];
+
+interface Props {
+  title: string;
+  description: string;
+}
+const { title, description } = Astro.props;
+---
+
+<section id="tecnologias" class="min-h-screen py-20 px-6 relative">
+  <div class="max-w-7xl mx-auto relative z-10">
+    <!-- Encabezado -->
+    <div class="text-start mb-20">
+      <h2 class="text-blanco mb-4 tech-title">{title}</h2>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {
+        technologies.map((tech) => (
+          <article class="group tech-card">
+            <div
+              class="tech-box h-full min-h-40 flex flex-col gap-3 items-center justify-center text-center
+                     p-6 rounded-xl border border-borde 
+                     hover:-translate-y-2 hover:scale-[1.03]
+                     transition-colors duration-300"
+            >
+              <Icon
+                name={tech.icon}
+                class="tech-icon w-10 h-10 text-gris-oscuro group-hover:text-primary transition-all duration-300"
+              />
+
+              <p class="text-gris-oscuro group-hover:text-blanco transition-colors duration-300">
+                {tech.name}
+              </p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    <!-- Bloque final -->
+    <div
+      class="tech-footer mt-12 p-8 rounded-2xl border border-borde bg-negro-claro"
+    >
+      <p class="text-gris-oscuro text-center">
+        {description}
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { animateSectionTitleScroll } from '../util/animations';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initTech() {
+    // 1. LIMPIEZA: Matar triggers previos para evitar errores en Astro
+    ScrollTrigger.getAll().forEach((t) => t.kill());
+
+    const cards = gsap.utils.toArray('.tech-card') as HTMLElement[];
+    const footer = document.querySelector('.tech-footer');
+
+    if (!cards.length) return;
+
+    // 2. ESTADO INICIAL: Cartas más abajo y con más desenfoque para que se note el cambio
+    gsap.set(cards, { opacity: 0, y: 80, filter: 'blur(12px)' });
+    if (footer) gsap.set(footer, { opacity: 0, y: 40 });
+
+    // Título (Tu función externa)
+    animateSectionTitleScroll('.tech-title', '#tecnologias');
+
+    // 3. TIMELINE CON SCRUB AJUSTADO
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#tecnologias',
+        // 'top 50%' significa que la animación empieza cuando el inicio de la sección
+        // llega a la mitad de la pantalla. Así obligas al usuario a bajar más.
+        start: 'top 70%',
+        // 'bottom 90%' le da un recorrido largo para que las cartas salgan poco a poco
+        end: 'top 15%',
+        scrub: 1, // Hace que la animación siga el scroll de forma suave
+        invalidateOnRefresh: true,
+      },
+    });
+
+    tl.to(cards, {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      stagger: 0.1, // Más tiempo entre cada carta para que se aprecie la fila
+      ease: 'power1.inOut',
+    }).to(
+      footer,
+      {
+        opacity: 1,
+        y: 0,
+      },
+      '-=0.3',
+    );
+
+    // 4. LÓGICA DE HOVER (Tilt 3D)
+    cards.forEach((card) => {
+      const box = card.querySelector('.tech-box') as HTMLElement;
+      card.addEventListener('mousemove', (e: MouseEvent) => {
+        const { left, top, width, height } = card.getBoundingClientRect();
+        const x = e.clientX - left;
+        const y = e.clientY - top;
+        const rotateY = ((x - width / 2) / (width / 2)) * 8;
+        const rotateX = ((height / 2 - y) / (height / 2)) * 8;
+
+        gsap.to(box, {
+          rotateX,
+          rotateY,
+          scale: 1.04,
+          duration: 0.4,
+          overwrite: 'auto',
+        });
+        const isLight = document.documentElement.classList.contains('light');
+
+        // En light: linterna oscura. En dark: linterna blanca
+        const glowColor = isLight
+          ? 'rgba(74, 85, 104, 0.12)'
+          : 'rgba(255,255,255,0.08)';
+        const shadowColor = isLight
+          ? 'rgba(0,0,0,0.10)'
+          : 'rgba(255,255,255,0.08)';
+
+        box.style.background = `radial-gradient(circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`;
+        box.style.boxShadow = `0 8px 15px ${shadowColor}, 0 4px 6px ${shadowColor}`;
+      });
+
+      card.addEventListener('mouseleave', () => {
+        gsap.to(box, {
+          rotateX: 0,
+          rotateY: 0,
+          scale: 1,
+          duration: 0.6,
+          ease: 'power2.out',
+          overwrite: 'auto',
+        });
+        box.style.background = '';
+        box.style.boxShadow = '';
+      });
+    });
+
+    // 5. REFRESH: Crucial para que GSAP mida bien la altura en la primera carga
+    setTimeout(() => {
+      ScrollTrigger.refresh();
+    }, 600); // Un poco más de tiempo para asegurar que todo el CSS cargó
+  }
+
+  // Eventos de Astro
+  document.addEventListener('astro:page-load', initTech);
+
+  if (document.readyState !== 'loading') {
+    initTech();
+  }
+</script>

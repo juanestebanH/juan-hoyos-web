@@ -1,0 +1,56 @@
+---
+// Definimos cuántos círculos queremos en la cola.
+// 20 es un buen número para que se vea fluido pero no pesado.
+const items = Array.from({ length: 20 });
+---
+
+<div id="serpent-container">
+  {items.map((_, i) => <div class="circle" data-index={i} />)}
+</div>
+
+<script>
+  const coords = { x: 0, y: 0 };
+  const circles = document.querySelectorAll('.circle');
+
+  // Inicializamos posiciones y colores
+  circles.forEach((circle) => {
+    // Usamos el objeto para guardar posiciones internas
+    (circle as any).x = 0;
+    (circle as any).y = 0;
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    coords.x = e.clientX;
+    coords.y = e.clientY;
+  });
+
+  function animateCircles() {
+    let x = coords.x;
+    let y = coords.y;
+
+    circles.forEach((circleEl, index) => {
+      const circle = circleEl as any;
+
+      // Posicionamos el div centrado en el mouse
+      circle.style.left = x - 12 + 'px';
+      circle.style.top = y - 12 + 'px';
+
+      // Efecto de escala: se achica hacia el final de la cola
+      circle.style.scale = (circles.length - index) / circles.length;
+
+      circle.x = x;
+      circle.y = y;
+
+      // Buscamos el siguiente círculo para que el actual lo "persiga"
+      const nextCircle = (circles[index + 1] || circles[0]) as any;
+
+      // Factor de suavizado (0.3 según el video)
+      x += (nextCircle.x - x) * 0.3;
+      y += (nextCircle.y - y) * 0.3;
+    });
+
+    requestAnimationFrame(animateCircles);
+  }
+
+  animateCircles();
+</script>

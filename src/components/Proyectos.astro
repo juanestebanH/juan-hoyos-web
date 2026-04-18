@@ -1,0 +1,192 @@
+---
+import { Icon } from 'astro-icon/components';
+import { projects } from '../data/projects';
+
+interface Props {
+  title: string;
+  descriptions: Record<string, string>;
+}
+const { title, descriptions } = Astro.props;
+
+// Combinar datos fijos + descripción traducida
+const projectsWithDesc = projects.map((p) => ({
+  ...p,
+  description: descriptions[p.id] ?? '',
+}));
+---
+
+<section
+  id="proyectos"
+  class="min-h-screen py-20 px-6 relative overflow-hidden"
+>
+  <div class="max-w-7xl mx-auto relative z-10">
+    <h2
+      class="text-blanco mb-16 text-start text-4xl font-bold project-title-anim opacity-0"
+    >
+      {title}
+    </h2>
+
+    <div class="grid md:grid-cols-2 gap-10">
+      {
+        projectsWithDesc.map((project) => (
+          <article class="group project-card opacity-0">
+            <div class="h-full flex flex-col  border border-white/10 overflow-hidden transition-colors duration-500 hover:border-primary/40 ">
+              <div class="relative h-64 overflow-hidden bg-black">
+                <img
+                  src={project.image.src}
+                  alt={project.title}
+                  class="project-img w-full h-full object-cover transition-transform duration-700"
+                />
+
+                <div class="project-overlay absolute inset-0 bg-black/60 flex items-center justify-center gap-4 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100">
+                  <a
+                    href={project.demo}
+                    target="_blank"
+                    class="p-3 bg-primary rounded-full text-blanco hover:scale-110 transition-transform flex items-center gap-2 px-5 md:px-3"
+                  >
+                    <Icon name="mdi:external-link" class="w-6 h-6" />
+                    <span class="md:hidden font-medium">Demo</span>
+                  </a>
+                  <a
+                    href={project.code}
+                    target="_blank"
+                    class="p-3 bg-white/10 backdrop-blur-md rounded-full text-blanco hover:scale-110 transition-transform border border-white/20 flex items-center gap-2 px-5 md:px-3"
+                  >
+                    <Icon name="mdi:github" class="w-6 h-6" />
+                    <span class="md:hidden font-medium">Código</span>
+                  </a>
+                </div>
+
+                <div
+                  class="absolute top-0 left-0 w-1.5 h-full"
+                  style={`background:${project.color}`}
+                />
+              </div>
+
+              <div class="p-8 flex-1 flex flex-col">
+                <h3 class="text-2xl text-blanco mb-3 font-bold group-hover:text-primary transition-colors">
+                  {project.title}
+                </h3>
+                <p class="text-gris-claro mb-6 line-clamp-2">
+                  {project.description}
+                </p>
+
+                <div class="flex flex-wrap gap-2 mt-auto">
+                  {project.tags.map((tag) => (
+                    <span class="px-3 py-1 text-xs font-medium text-gris-claro bg-primary/10 rounded-md border border-borde">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { animateSectionTitleScroll } from '../util/animations';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initProjects() {
+    const cards = document.querySelectorAll('.project-card');
+    const isTouchDevice =
+      'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    animateSectionTitleScroll('.project-title-anim', '#proyectos');
+
+    cards.forEach((card, i) => {
+      const fromX = i % 2 === 0 ? -120 : 120;
+
+      gsap.fromTo(
+        card,
+        {
+          x: fromX,
+          y: 30,
+          opacity: 0,
+          filter: 'blur(10px)',
+        },
+        {
+          scrollTrigger: {
+            trigger: card,
+            start: 'top 92%',
+            toggleActions: 'restart none none reverse',
+          },
+          x: 0,
+          y: 0,
+          opacity: 1,
+          filter: 'blur(0px)',
+          duration: 1.4,
+          delay: (i % 2) * 0.2,
+          ease: 'power3.out',
+        },
+      );
+
+      const img = card.querySelector('.project-img');
+
+      if (!isTouchDevice) {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const xPos =
+            ((e as MouseEvent).clientX - rect.left) / rect.width - 0.5;
+          const yPos =
+            ((e as MouseEvent).clientY - rect.top) / rect.height - 0.5;
+
+          gsap.to(img, {
+            x: xPos * 30,
+            y: yPos * 30,
+            scale: 1.12,
+            duration: 0.7,
+            ease: 'power2.out',
+          });
+        });
+
+        card.addEventListener('mouseleave', () => {
+          gsap.to(img, {
+            x: 0,
+            y: 0,
+            scale: 1,
+            duration: 0.7,
+            ease: 'power2.out',
+          });
+        });
+      } else {
+        gsap.to(img, {
+          scrollTrigger: {
+            trigger: card,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          },
+          y: 40,
+          ease: 'none',
+        });
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initProjects);
+  initProjects();
+</script>
+<style>
+  /* Prevenir saltos visuales */
+  .project-card,
+  .project-title-anim {
+    will-change: transform, opacity;
+  }
+
+  @media (max-width: 768px) {
+    .project-overlay {
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+      opacity: 1;
+      align-items: flex-end;
+      padding-bottom: 2rem;
+    }
+  }
+</style>

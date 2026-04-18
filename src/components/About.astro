@@ -1,0 +1,187 @@
+---
+import foto from '../assets/juan.png';
+interface Props {
+  title: string;
+  subtitle: string;
+  paragraphs: string[];
+  btn_cv: string;
+  cv_path: string;
+}
+const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
+---
+
+<section id="sobre-mi" class="py-20 px-6 relative">
+  <div class="max-w-7xl mx-auto relative z-10">
+    <!-- Título -->
+    <div class="text-start mb-16">
+      <h2 class="about-title text-4xl md:text-5xl font-bold text-blanco">
+        {title}
+      </h2>
+    </div>
+
+    <!-- Grid -->
+    <div class="grid md:grid-cols-2 gap-12 items-center">
+      <!-- Texto -->
+      <div class="about-card">
+        <div class="bg-negro-claro p-8 md:p-12 shadow-[8px_8px_0_black]">
+          <h3
+            class="about-subtitle text-2xl md:text-3xl font-bold text-secondary mb-6"
+          >
+            {subtitle}
+          </h3>
+
+          <div class="space-y-4">
+            {
+              paragraphs.map((p) => (
+                <p class="about-line text-gris-claro text-lg leading-relaxed">
+                  {p}
+                </p>
+              ))
+            }
+          </div>
+
+          <div class="mt-8">
+            <a
+              href={cv_path}
+              download="CV_JuanHoyos.pdf"
+              class="about-btn inline-block px-6 py-3 bg-primary text-blanco font-medium border-2 border-black shadow-[4px_4px_0_black]"
+            >
+              {btn_cv}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Imagen -->
+      <div class="about-image-wrap">
+        <div
+          class="about-image w-full h-96 md:h-125 overflow-hidden shadow-[8px_8px_0_black]"
+        >
+          <img
+            src={foto.src}
+            alt="Juan Hoyos"
+            class="about-img w-full h-full object-cover"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { animateSectionTitleScroll } from '../util/animations';
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initAbout() {
+    animateSectionTitleScroll('.about-title', '#sobre-mi');
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: '#sobre-mi',
+        start: 'top 75%',
+        toggleActions: 'play none none reset',
+      },
+    });
+
+    // Subtítulo
+    tl.from(
+      '.about-subtitle',
+      {
+        y: 20,
+        opacity: 0,
+        duration: 0.7,
+        ease: 'power3.out',
+      },
+      '-=0.5',
+    );
+
+    // Texto línea por línea
+    tl.from(
+      '.about-line',
+      {
+        y: 25,
+        opacity: 0,
+        stagger: 0.18,
+        duration: 0.75,
+        ease: 'power3.out',
+      },
+      '-=0.4',
+    );
+
+    // Botón
+    tl.from(
+      '.about-btn',
+      {
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'back.out(1.7)',
+      },
+      '-=0.3',
+    );
+
+    // Imagen reveal
+    tl.from(
+      '.about-image',
+      {
+        x: 80,
+        opacity: 0,
+        filter: 'blur(12px)',
+        duration: 1,
+        ease: 'power3.out',
+      },
+      '-=1',
+    );
+
+    tl.from(
+      '.about-img',
+      {
+        scale: 1.15,
+        duration: 1.2,
+        ease: 'power2.out',
+      },
+      '-=1',
+    );
+
+    // Flotación constante
+    gsap.to('.about-image-wrap', {
+      y: -12,
+      duration: 2.8,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+    });
+
+    // Hover imagen
+    const img = document.querySelector('.about-img');
+    const wrap = document.querySelector('.about-image');
+
+    wrap?.addEventListener('mouseenter', () => {
+      gsap.to(img, {
+        scale: 1.05,
+        duration: 0.4,
+      });
+    });
+
+    wrap?.addEventListener('mouseleave', () => {
+      gsap.to(img, {
+        scale: 1,
+        duration: 0.4,
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initAbout);
+  initAbout();
+</script>
+
+<style>
+  .about-image,
+  .about-line,
+  .about-title {
+    will-change: transform, opacity;
+  }
+</style>
