@@ -2,10 +2,7 @@
 import { Icon } from 'astro-icon/components';
 
 const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
-const switchTo = lang === 'es' ? 'en' : 'es';
-
-// Construirlo más simple y directo
-const switchPath = `/${switchTo}`;
+const switchPath = lang === 'es' ? '/en' : '/';
 
 const items =
   lang === 'es'
