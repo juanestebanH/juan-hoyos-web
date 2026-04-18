@@ -1,41 +1,73 @@
 ---
 import '../styles/global.css';
 import CursorSerpiente from '../components/CursorSerpiente.astro';
-const { title = 'Juan Hoyos | Full Stack Developer' } = Astro.props;
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Juan Hoyos | Full Stack Developer',
+  description = 'Portafolio de Juan Hoyos, desarrollador Full Stack de Colombia. Especializado en React, Node.js, Astro y más.',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={Astro.url.pathname.startsWith('/en') ? 'en' : 'es'}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
 
-    <meta name="generator" content={Astro.generator} />
+    <!-- SEO básico -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Juan Hoyos" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph (WhatsApp, Facebook, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="/og-image.png" />
     <meta
-      name="description"
-      content="Portafolio de Juan Hoyos, desarrollador Full Stack."
+      property="og:locale"
+      content={Astro.url.pathname.startsWith('/en') ? 'en_US' : 'es_CO'}
     />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
       rel="stylesheet"
     />
-    <title>{title}</title>
+
+    <meta name="generator" content={Astro.generator} />
 
     <script is:inline>
       document.documentElement.style.opacity = '0';
       document.documentElement.style.transition = 'opacity 0.15s ease';
-
       window.addEventListener('load', () => {
         document.documentElement.style.opacity = '1';
       });
-
       document.addEventListener('astro:before-preparation', () => {
         document.documentElement.style.opacity = '0';
       });
-
       document.addEventListener('astro:page-load', () => {
         document.documentElement.style.opacity = '1';
       });
