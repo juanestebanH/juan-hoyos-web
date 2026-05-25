@@ -1,5 +1,11 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "paths": {
+      "three/addons/*": ["./node_modules/three/examples/jsm/*"],
+      "three/examples/jsm/*": ["./node_modules/three/examples/jsm/*"]
+    }
+  }
 }

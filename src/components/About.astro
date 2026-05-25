@@ -1,5 +1,6 @@
 ---
 import foto from '../assets/juan.png';
+
 interface Props {
   title: string;
   subtitle: string;
@@ -54,14 +55,8 @@ const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
 
       <!-- Imagen -->
       <div class="about-image-wrap">
-        <div
-          class="about-image w-full h-96 md:h-125 overflow-hidden shadow-[8px_8px_0_black]"
-        >
-          <img
-            src={foto.src}
-            alt="Juan Hoyos"
-            class="about-img w-full h-full object-cover"
-          />
+        <div class="about-image w-full h-96 md:h-125">
+          <canvas id="model-canvas" class="w-full h-full"></canvas>
         </div>
       </div>
     </div>
@@ -71,6 +66,10 @@ const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  // @ts-ignore
+  import * as THREE from 'three';
+  // @ts-ignore
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
   import { animateSectionTitleScroll } from '../util/animations';
 
   gsap.registerPlugin(ScrollTrigger);
@@ -78,6 +77,98 @@ const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
   function initAbout() {
     animateSectionTitleScroll('.about-title', '#sobre-mi');
 
+    // ── Three.js setup ──────────────────────────────────────────
+    const canvas = document.getElementById('model-canvas') as HTMLCanvasElement;
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: true,
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      canvas.clientWidth / canvas.clientHeight,
+      0.1,
+      100,
+    );
+
+    // Iluminación
+    scene.add(new THREE.AmbientLight(0xffffff, 3));
+
+    // Luz frontal principal
+    const frontLight = new THREE.DirectionalLight(0xffffff, 3);
+    frontLight.position.set(0, 2, 5);
+    scene.add(frontLight);
+
+    // Luz desde arriba
+    const topLight = new THREE.DirectionalLight(0xffffff, 2);
+    topLight.position.set(0, 10, 0);
+    scene.add(topLight);
+
+    // Luz de relleno desde la izquierda (elimina sombras duras)
+    const fillLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    fillLight.position.set(-5, 0, 3);
+    scene.add(fillLight);
+
+    // Luz de relleno desde la derecha
+    const rimLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    rimLight.position.set(5, 0, 3);
+    scene.add(rimLight);
+
+    // ── Estado del mouse ────────────────────────────────────────
+    let targetRotX = 0;
+    let targetRotY = 0;
+    let model: THREE.Group | null = null;
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientY / window.innerHeight - 0.5) * 2;
+      const y = (e.clientX / window.innerWidth - 0.5) * 2;
+      targetRotX = x * 0.3;
+      targetRotY = y * 0.5;
+    });
+
+    // ── Carga del modelo ────────────────────────────────────────
+    const loader = new GLTFLoader();
+    loader.load('juan-3d.glb', (gltf: any) => {
+      model = gltf.scene as THREE.Group;
+
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      model.position.sub(center);
+
+      scene.add(model);
+
+      // Ajustar cámara al tamaño real del modelo
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = camera.fov * (Math.PI / 180);
+      camera.position.z = (maxDim / 2 / Math.tan(fov / 2)) * 1.2;
+      camera.updateProjectionMatrix();
+    });
+
+    // ── Loop con seguimiento suave del mouse ────────────────────
+    renderer.setAnimationLoop(() => {
+      if (model) {
+        // Lerp: persigue el objetivo suavemente
+        model.rotation.x += (targetRotX - model.rotation.x) * 0.05;
+        model.rotation.y += (targetRotY - model.rotation.y) * 0.05;
+      }
+      renderer.render(scene, camera);
+    });
+
+    // ── Responsivo ──────────────────────────────────────────────
+    const ro = new ResizeObserver(() => {
+      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      camera.aspect = canvas.clientWidth / canvas.clientHeight;
+      camera.updateProjectionMatrix();
+    });
+    ro.observe(canvas);
+
+    // ── Animaciones GSAP ────────────────────────────────────────
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: '#sobre-mi',
@@ -86,19 +177,13 @@ const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
       },
     });
 
-    // Subtítulo
-    tl.from(
-      '.about-subtitle',
-      {
-        y: 20,
-        opacity: 0,
-        duration: 0.7,
-        ease: 'power3.out',
-      },
-      '-=0.5',
-    );
+    tl.from('.about-subtitle', {
+      y: 20,
+      opacity: 0,
+      duration: 0.7,
+      ease: 'power3.out',
+    });
 
-    // Texto línea por línea
     tl.from(
       '.about-line',
       {
@@ -111,7 +196,6 @@ const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
       '-=0.4',
     );
 
-    // Botón
     tl.from(
       '.about-btn',
       {
@@ -123,25 +207,13 @@ const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
       '-=0.3',
     );
 
-    // Imagen reveal
     tl.from(
       '.about-image',
       {
         x: 80,
         opacity: 0,
-        filter: 'blur(12px)',
         duration: 1,
         ease: 'power3.out',
-      },
-      '-=1',
-    );
-
-    tl.from(
-      '.about-img',
-      {
-        scale: 1.15,
-        duration: 1.2,
-        ease: 'power2.out',
       },
       '-=1',
     );
@@ -153,24 +225,6 @@ const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
       repeat: -1,
       yoyo: true,
       ease: 'sine.inOut',
-    });
-
-    // Hover imagen
-    const img = document.querySelector('.about-img');
-    const wrap = document.querySelector('.about-image');
-
-    wrap?.addEventListener('mouseenter', () => {
-      gsap.to(img, {
-        scale: 1.05,
-        duration: 0.4,
-      });
-    });
-
-    wrap?.addEventListener('mouseleave', () => {
-      gsap.to(img, {
-        scale: 1,
-        duration: 0.4,
-      });
     });
   }
 
