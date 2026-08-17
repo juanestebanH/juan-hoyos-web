@@ -38,6 +38,8 @@ export const en = {
       'IP address finder that displays its location on an interactive map.',
     architec:
       'Platform that suggests software architectures based on project requirements.',
+    golytics:
+      'AI agent that decides which data to consult to calculate the expected value of a sports bet.',
   },
 
   experiences: {

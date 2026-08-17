@@ -1,6 +1,7 @@
 import ecommercerenta from '../assets/ecommercerenta.png';
 import webip from '../assets/webip.png';
 import architec from '../assets/architec.png';
+import golytics from '../assets/golytics.png';
 
 export const projects = [
   {
@@ -29,5 +30,14 @@ export const projects = [
     color: 'hsl(var(--cn-deep-purple))',
     demo: 'https://architec-ia-1.onrender.com/',
     code: 'https://github.com/juanestebanH/Architec-ia',
+  },
+  {
+    id: 'golytics',
+    title: 'golytics',
+    image: golytics,
+    tags: ['React', 'Python', 'Tailwind CSS', 'FastAPI'],
+    color: 'hsl(var(--cn-gray))',
+    demo: 'https://golytics-web.onrender.com/',
+    code: 'https://github.com/juanestebanH/golytics',
   },
 ];

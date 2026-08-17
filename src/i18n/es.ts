@@ -38,6 +38,8 @@ export const es = {
       'Buscador de direcciones IP que muestra su ubicación en un mapa interactivo.',
     architec:
       'Plataforma que sugiere arquitecturas de software según las necesidades del proyecto.',
+    golytics:
+      'Agente de IA que decide qué datos consultar para calcular el valor esperado de una apuesta deportiva.',
   },
 
   experiences: {
