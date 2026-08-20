@@ -36,6 +36,8 @@ export const en = {
       'Car rental platform with real-time reservations and admin dashboard.',
     iptracker:
       'IP address finder that displays its location on an interactive map.',
+    globus:
+      'Globo terráqueo 3D interactivo con datos de países en tiempo real y navegación animada por el sistema solar.',
     architec:
       'Platform that suggests software architectures based on project requirements.',
     golytics:

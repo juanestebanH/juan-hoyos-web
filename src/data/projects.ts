@@ -1,5 +1,6 @@
 import ecommercerenta from '../assets/ecommercerenta.png';
 import webip from '../assets/webip.png';
+import globus from '../assets/globus.png';
 import architec from '../assets/architec.png';
 import golytics from '../assets/golytics.png';
 
@@ -13,14 +14,23 @@ export const projects = [
     demo: 'https://ecommerce-renta-de-carros-1.onrender.com/',
     code: 'https://github.com/juanestebanH/Ecommerce-renta-de-carros',
   },
+  // {
+  //   id: 'iptracker',
+  //   title: 'IP Address Tracker',
+  //   image: webip,
+  //   tags: ['HTML', 'CSS', 'JavaScript', 'Leaflet'],
+  //   color: 'hsl(var(--cn-turquoise))',
+  //   demo: 'https://ip-ubicacion-uy7f.onrender.com/',
+  //   code: 'https://github.com/juanestebanH/ip_ubicacion',
+  // },
   {
-    id: 'iptracker',
-    title: 'IP Address Tracker',
-    image: webip,
-    tags: ['HTML', 'CSS', 'JavaScript', 'Leaflet'],
-    color: 'hsl(var(--cn-turquoise))',
-    demo: 'https://ip-ubicacion-uy7f.onrender.com/',
-    code: 'https://github.com/juanestebanH/ip_ubicacion',
+    id: 'globus',
+    title: 'Globus',
+    image: globus,
+    tags: ['React', 'Tailwind CSS'],
+    color: 'hsl(var(--cn-green))',
+    demo: 'https://globus-r2xx.onrender.com/',
+    code: 'https://github.com/juanestebanH/Globus',
   },
   {
     id: 'architec',

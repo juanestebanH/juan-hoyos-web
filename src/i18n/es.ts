@@ -36,6 +36,8 @@ export const es = {
       'Plataforma de renta de autos con reservas en tiempo real y panel administrativo',
     iptracker:
       'Buscador de direcciones IP que muestra su ubicación en un mapa interactivo.',
+    globus:
+      'Globo terráqueo 3D interactivo con datos de países en tiempo real y navegación animada por el sistema solar.',
     architec:
       'Plataforma que sugiere arquitecturas de software según las necesidades del proyecto.',
     golytics:
