@@ -37,7 +37,7 @@ export const en = {
     iptracker:
       'IP address finder that displays its location on an interactive map.',
     globus:
-      'Globo terráqueo 3D interactivo con datos de países en tiempo real y navegación animada por el sistema solar.',
+      'Interactive 3D globe with real-time country data and animated navigation through the solar system.',
     architec:
       'Platform that suggests software architectures based on project requirements.',
     golytics:
