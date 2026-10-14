@@ -11,8 +11,8 @@ export const projects = [
     image: ecommercerenta,
     tags: ['React', 'Node.js', 'Supabase', 'Tailwind CSS'],
     color: 'hsl(var(--primary))',
-    demo: 'https://ecommerce-renta-de-carros-1.onrender.com/',
-    code: 'https://github.com/juanestebanH/Ecommerce-renta-de-carros',
+    demo: 'https://rentx-ecommerce-de-renta-de-carros-1.onrender.com/',
+    code: 'https://github.com/juanestebanH/rentx-ecommerce-de-renta-de-carros',
   },
   // {
   //   id: 'iptracker',
