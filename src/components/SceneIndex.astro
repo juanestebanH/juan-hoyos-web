@@ -1,0 +1,83 @@
+---
+interface Props {
+  index: string;
+}
+
+const { index } = Astro.props;
+---
+
+<div class="scene-mark" data-scene-mark aria-hidden="true">
+  <span class="scene-mark__rule" data-scene-rule></span>
+  <span class="scene-mark__float" data-scene-float>
+    <span class="scene-mark__index" data-scene-index>{index}</span>
+  </span>
+</div>
+
+<style>
+  .scene-mark {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .scene-mark__rule {
+    position: absolute;
+    top: 0;
+    left: max(1.25rem, calc((100vw - 80rem) / 2 + 1.5rem));
+    right: max(1.25rem, calc((100vw - 80rem) / 2 + 1.5rem));
+    height: 1px;
+    background: color-mix(in srgb, var(--color-blanco) 18%, transparent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    will-change: transform;
+  }
+
+  .scene-mark__float {
+    position: absolute;
+    top: clamp(2.25rem, 6vw, 5rem);
+    right: max(1rem, calc((100vw - 80rem) / 2 + 1.75rem));
+    will-change: transform;
+  }
+
+  .scene-mark__index {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(7rem, 18vw, 17rem);
+    font-weight: 900;
+    line-height: 0.75;
+    letter-spacing: -0.07em;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--color-blanco) 18%, transparent);
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  @media (max-width: 768px) {
+    .scene-mark__rule {
+      left: 1rem;
+      right: 1rem;
+    }
+
+    .scene-mark__float {
+      top: 1.5rem;
+      right: 0.5rem;
+    }
+
+    .scene-mark__index {
+      font-size: clamp(4.5rem, 24vw, 8rem);
+      -webkit-text-stroke-width: 1px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene-mark__rule {
+      transform: scaleX(1);
+    }
+
+    .scene-mark__index {
+      opacity: 0.32;
+    }
+  }
+</style>

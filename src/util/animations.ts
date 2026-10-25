@@ -1,7 +1,8 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText);
 
 /**
  * Animación de títulos para usar dentro de timelines
@@ -44,4 +45,29 @@ export function animateSectionTitleScroll(selector: string, trigger?: string) {
       },
     },
   );
+}
+
+export function animateTitleChars(selector: string, trigger?: string) {
+  const element = document.querySelector(selector);
+  if (!element) {
+    console.warn(`Element with selector "${selector}" not found for animation`);
+    return;
+  }
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const split = SplitText.create(selector, { type: 'chars', autoSplit: true });
+
+  gsap.set(split.chars, { yPercent: 110 });
+  gsap.to(split.chars, {
+    yPercent: 0,
+    duration: 0.8,
+    stagger: 0.03,
+    ease: 'power3.out',
+    scrollTrigger: {
+      trigger: trigger || selector,
+      start: 'top 85%',
+      toggleActions: 'play none none reset',
+    },
+  });
 }

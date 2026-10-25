@@ -1,49 +1,77 @@
 ---
 import { Icon } from 'astro-icon/components';
+import SceneIndex from './SceneIndex.astro';
 
-const technologies = [
-  { name: 'HTML/CSS', icon: 'mdi:language-html5' },
-  { name: 'React', icon: 'mdi:react' },
-  { name: 'Tailwind CSS', icon: 'mdi:tailwind' },
-  { name: 'Node.js', icon: 'mdi:nodejs' },
-  { name: 'MySQL', icon: 'mdi:database' },
-  { name: 'JavaScript', icon: 'mdi:language-javascript' },
-  { name: 'Python', icon: 'mdi:language-python' },
-  { name: 'Git', icon: 'mdi:git' },
-  { name: 'PHP', icon: 'mdi:language-php' },
+type Cat = 'frontend' | 'backend' | 'tools';
+
+const technologies: { name: string; icon: string; cat: Cat }[] = [
+  { name: 'HTML/CSS', icon: 'mdi:language-html5', cat: 'frontend' },
+  { name: 'React', icon: 'mdi:react', cat: 'frontend' },
+  { name: 'Tailwind CSS', icon: 'mdi:tailwind', cat: 'frontend' },
+  { name: 'JavaScript', icon: 'mdi:language-javascript', cat: 'frontend' },
+  { name: 'Node.js', icon: 'mdi:nodejs', cat: 'backend' },
+  { name: 'MySQL', icon: 'mdi:database', cat: 'backend' },
+  { name: 'Python', icon: 'mdi:language-python', cat: 'backend' },
+  { name: 'PHP', icon: 'mdi:language-php', cat: 'backend' },
+  { name: 'Git', icon: 'mdi:git', cat: 'tools' },
 ];
 
 interface Props {
   title: string;
   description: string;
+  cats: { all: string; frontend: string; backend: string; tools: string };
 }
-const { title, description } = Astro.props;
+const { title, description, cats } = Astro.props;
 ---
 
 <section id="tecnologias" class="min-h-screen py-20 px-6 relative">
+  <div class="tech-bg" aria-hidden="true" />
+  <div class="tech-glow-wrap" aria-hidden="true">
+    <div class="tech-bg-glow" />
+  </div>
+  <SceneIndex index="02" />
+
   <div class="max-w-7xl mx-auto relative z-10">
     <!-- Encabezado -->
-    <div class="text-start mb-20">
-      <h2 class="text-blanco mb-4 tech-title">{title}</h2>
+    <div class="text-start mb-12">
+      <h2 class="text-blanco mb-6 tech-title overflow-hidden">{title}</h2>
+
+      <!-- Filtros de categoría -->
+      <div class="tech-filters flex flex-wrap gap-3" role="tablist">
+        {
+          Object.entries(cats).map(([key, label], i) => (
+            <button
+              type="button"
+              class:list={['tech-filter', { 'is-active': i === 0 }]}
+              data-cat={key}
+              role="tab"
+              aria-selected={i === 0 ? 'true' : 'false'}
+            >
+              {label}
+            </button>
+          ))
+        }
+      </div>
     </div>
 
     <!-- Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <div class="tech-grid grid grid-cols-2 md:grid-cols-4 gap-5">
       {
-        technologies.map((tech) => (
-          <article class="group tech-card">
+        technologies.map((tech, i) => (
+          <article class="group tech-card" data-cat={tech.cat}>
             <div
-              class="tech-box h-full min-h-40 flex flex-col gap-3 items-center justify-center text-center
-                     p-6  border border-borde 
-                     hover:-translate-y-2 hover:scale-[1.03]
+              class="tech-box h-full min-h-32 flex flex-col gap-2 items-center justify-center text-center
+                     p-5 border border-borde
                      transition-colors duration-300"
             >
+              <span class="tech-index">{String(i + 1).padStart(2, '0')}</span>
+
               <Icon
                 name={tech.icon}
-                class="tech-icon w-10 h-10 text-gris-oscuro group-hover:text-primary transition-all duration-300"
+                class="tech-icon w-9 h-9 text-gris-oscuro group-hover:text-blanco transition-all duration-300"
               />
 
-              <p class="text-gris-oscuro group-hover:text-blanco transition-colors duration-300">
+              <p class="tech-name text-gris-oscuro group-hover:text-blanco transition-colors duration-300">
                 {tech.name}
               </p>
             </div>
@@ -54,6 +82,7 @@ const { title, description } = Astro.props;
 
     <!-- Bloque final -->
     <div class="tech-footer mt-12 p-8 border border-borde bg-negro-claro">
+      <span class="tech-footer-line" aria-hidden="true" />
       <p class="text-gris-oscuro text-center">
         {description}
       </p>
@@ -64,105 +93,280 @@ const { title, description } = Astro.props;
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { animateSectionTitleScroll } from '../util/animations';
+  import { animateTitleChars } from '../util/animations';
+  import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+  import { Flip } from 'gsap/Flip';
+  import { CustomEase } from 'gsap/CustomEase';
+  import { CustomWiggle } from 'gsap/CustomWiggle';
 
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, Flip, CustomEase, CustomWiggle);
+
+  let techCtx;
 
   function initTech() {
-    // 1. LIMPIEZA: Matar triggers previos para evitar errores en Astro
-    ScrollTrigger.getAll().forEach((t) => t.kill());
+    if (techCtx) return;
+    const section = document.querySelector('#tecnologias');
+    if (!section) return;
 
-    const cards = gsap.utils.toArray('.tech-card') as HTMLElement[];
-    const footer = document.querySelector('.tech-footer');
+    const reduceM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
 
-    if (!cards.length) return;
+    try {
+      CustomWiggle.create('techWiggle', { wiggles: 2, type: 'easeOut' });
+    } catch (e) {
+      console.warn('CustomWiggle no disponible', e);
+    }
 
-    // 2. ESTADO INICIAL: Cartas más abajo y con más desenfoque para que se note el cambio
-    gsap.set(cards, { opacity: 0, y: 80, filter: 'blur(12px)' });
-    if (footer) gsap.set(footer, { opacity: 0, y: 40 });
+    techCtx = gsap.context(() => {
+      const cards = gsap.utils.toArray('.tech-card');
+      const grid = section.querySelector('.tech-grid');
+      const footer = section.querySelector('.tech-footer');
+      const footerLine = section.querySelector('.tech-footer-line');
+      const bg = section.querySelector('.tech-bg');
+      const glowWrap = section.querySelector('.tech-glow-wrap');
 
-    // Título (Tu función externa)
-    animateSectionTitleScroll('.tech-title', '#tecnologias');
+      // ── 1. TÍTULO: reveal char por char ──────────
+      if (!reduceM) {
+        animateTitleChars('.tech-title', '.tech-title');
+      }
 
-    // 3. TIMELINE CON SCRUB AJUSTADO
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '#tecnologias',
-        // 'top 50%' significa que la animación empieza cuando el inicio de la sección
-        // llega a la mitad de la pantalla. Así obligas al usuario a bajar más.
-        start: 'top 70%',
-        // 'bottom 90%' le da un recorrido largo para que las cartas salgan poco a poco
-        end: 'top 15%',
-        scrub: 1, // Hace que la animación siga el scroll de forma suave
-        invalidateOnRefresh: true,
-      },
-    });
+      // ── 2. REVEAL: bloom radial + máscara + números ──────────
+      const columns = () => {
+        if (!grid) return 4;
+        const n = window
+          .getComputedStyle(grid)
+          .gridTemplateColumns.split(' ').filter(Boolean).length;
+        return n || 4;
+      };
 
-    tl.to(cards, {
-      opacity: 1,
-      y: 0,
-      filter: 'blur(0px)',
-      stagger: 0.1, // Más tiempo entre cada carta para que se aprecie la fila
-      ease: 'power1.inOut',
-    }).to(
-      footer,
-      {
-        opacity: 1,
-        y: 0,
-      },
-      '-=0.3',
-    );
+      if (!reduceM && cards.length) {
+        gsap.set(cards, { opacity: 0, y: 30, clipPath: 'inset(100% 0 0 0)' });
+        if (footer)
+          gsap.set(footer, { opacity: 0, y: 40, clipPath: 'inset(0 0 100% 0)' });
+        if (footerLine) gsap.set(footerLine, { scaleX: 0, transformOrigin: 'left center' });
 
-    // 4. LÓGICA DE HOVER (Tilt 3D)
-    cards.forEach((card) => {
-      const box = card.querySelector('.tech-box') as HTMLElement;
-      card.addEventListener('mousemove', (e: MouseEvent) => {
-        const { left, top, width, height } = card.getBoundingClientRect();
-        const x = e.clientX - left;
-        const y = e.clientY - top;
-        const rotateY = ((x - width / 2) / (width / 2)) * 8;
-        const rotateX = ((height / 2 - y) / (height / 2)) * 8;
-
-        gsap.to(box, {
-          rotateX,
-          rotateY,
-          scale: 1.04,
-          duration: 0.4,
-          overwrite: 'auto',
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: '.tech-grid',
+            start: 'top 70%',
+            toggleActions: 'play none none reset',
+          },
         });
-        const isLight = document.documentElement.classList.contains('light');
 
-        // En light: linterna oscura. En dark: linterna blanca
-        const glowColor = isLight
-          ? 'rgba(74, 85, 104, 0.12)'
-          : 'rgba(255,255,255,0.08)';
-        const shadowColor = isLight
-          ? 'rgba(0,0,0,0.10)'
-          : 'rgba(255,255,255,0.08)';
-
-        box.style.background = `radial-gradient(circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`;
-        box.style.boxShadow = `0 8px 15px ${shadowColor}, 0 4px 6px ${shadowColor}`;
-      });
-
-      card.addEventListener('mouseleave', () => {
-        gsap.to(box, {
-          rotateX: 0,
-          rotateY: 0,
-          scale: 1,
-          duration: 0.6,
+        tl.to(cards, {
+          opacity: 1,
+          y: 0,
+          clipPath: 'inset(0% 0 0 0)',
+          duration: 0.7,
+          stagger: {
+            each: 0.08,
+            from: 'center',
+            grid: [columns(), Math.ceil(cards.length / columns())],
+          },
           ease: 'power2.out',
-          overwrite: 'auto',
         });
-        box.style.background = '';
-        box.style.boxShadow = '';
-      });
-    });
 
-    // 5. REFRESH: Crucial para que GSAP mida bien la altura en la primera carga
-    setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 600); // Un poco más de tiempo para asegurar que todo el CSS cargó
+        if (footerLine) tl.to(footerLine, { scaleX: 1, duration: 0.6, ease: 'power2.out' }, '-=0.2');
+        if (footer) tl.to(footer, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }, '-=0.4');
+      }
+
+      // ── 3. HOVER: tilt + linterna + scramble + wiggle + foco ─
+      if (!reduceM && !coarse && cards.length) {
+        cards.forEach((card) => {
+          const box = card.querySelector('.tech-box');
+          const nameEl = card.querySelector('.tech-name');
+          const iconEl = card.querySelector('.tech-icon');
+          const original = nameEl?.textContent || '';
+          if (!box) return;
+
+          card.addEventListener('mousemove', (e) => {
+            const { left, top, width, height } = card.getBoundingClientRect();
+            const x = e.clientX - left;
+            const y = e.clientY - top;
+
+            gsap.to(box, {
+              rotateY: ((x - width / 2) / (width / 2)) * 8,
+              rotateX: ((height / 2 - y) / (height / 2)) * 8,
+              scale: 1.04,
+              duration: 0.4,
+              overwrite: 'auto',
+            });
+
+            const isLight = document.documentElement.classList.contains('light');
+            const glowColor = isLight
+              ? 'rgba(74, 85, 104, 0.12)'
+              : 'rgba(255,255,255,0.08)';
+            const shadowColor = isLight
+              ? 'rgba(0,0,0,0.10)'
+              : 'rgba(255,255,255,0.08)';
+
+            box.style.background = `radial-gradient(circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`;
+            box.style.boxShadow = `0 8px 15px ${shadowColor}, 0 4px 6px ${shadowColor}`;
+          });
+
+          card.addEventListener('mouseenter', () => {
+            if (nameEl && original) {
+              gsap.to(nameEl, {
+                duration: 0.6,
+                scrambleText: { text: original, chars: 'upperCase', speed: 0.5 },
+              });
+            }
+            if (iconEl) {
+              gsap.to(iconEl, { x: 6, duration: 0.8, ease: 'techWiggle' });
+            }
+          });
+
+          card.addEventListener('mouseleave', () => {
+            gsap.to(box, {
+              rotateX: 0,
+              rotateY: 0,
+              scale: 1,
+              duration: 0.6,
+              ease: 'power2.out',
+              overwrite: 'auto',
+            });
+            box.style.background = '';
+            box.style.boxShadow = '';
+          });
+        });
+
+        // Foco por proximidad
+        if (grid) {
+          const setters = cards.map((c) =>
+            gsap.quickTo(c, 'opacity', { duration: 0.3, ease: 'power2.out' }),
+          );
+          grid.addEventListener('mousemove', (e) => {
+            cards.forEach((card, i) => {
+              const r = card.getBoundingClientRect();
+              const d = Math.hypot(
+                e.clientX - (r.left + r.width / 2),
+                e.clientY - (r.top + r.height / 2),
+              );
+              const t = gsap.utils.clamp(0, 1, 1 - d / 360);
+              setters[i](0.7 + 0.3 * t);
+            });
+          });
+          grid.addEventListener('mouseleave', () => setters.forEach((s) => s(1)));
+        }
+      }
+
+      // ── 4. CATEGORÍAS: filtros animados + GSAP Flip ──────────
+      const filterButtons = gsap.utils.toArray('.tech-filter');
+
+      if (!reduceM && filterButtons.length) {
+        gsap.from(filterButtons, {
+          y: 14,
+          opacity: 0,
+          duration: 0.5,
+          stagger: 0.06,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.tech-filters',
+            start: 'top 88%',
+            toggleActions: 'play none none reset',
+          },
+        });
+
+        if (!coarse) {
+          filterButtons.forEach((btn) => {
+            btn.addEventListener('mouseenter', () =>
+              gsap.to(btn, { y: -2, duration: 0.25, ease: 'power2.out' }),
+            );
+            btn.addEventListener('mouseleave', () =>
+              gsap.to(btn, { y: 0, duration: 0.25, ease: 'power2.out' }),
+            );
+          });
+        }
+      }
+
+      const applyFilter = (cat) => {
+        const fromH = grid ? grid.offsetHeight : 0;
+        const state = reduceM ? null : Flip.getState(cards);
+        cards.forEach((card) => {
+          const show = cat === 'all' || card.dataset.cat === cat;
+          card.style.display = show ? '' : 'none';
+        });
+        filterButtons.forEach((btn) => {
+          const active = btn.dataset.cat === cat;
+          btn.classList.toggle('is-active', active);
+          btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        if (!reduceM) {
+          const activeBtn = filterButtons.find((b) => b.classList.contains('is-active'));
+          if (activeBtn) {
+            gsap.fromTo(
+              activeBtn,
+              { scale: 0.92 },
+              { scale: 1, duration: 0.4, ease: 'back.out(2.2)', overwrite: 'auto' },
+            );
+          }
+        }
+
+        if (!reduceM && state) {
+          Flip.from(state, {
+            duration: 0.5,
+            ease: 'power2.inOut',
+            stagger: 0.02,
+          });
+        }
+
+        const toH = grid ? grid.offsetHeight : 0;
+        if (!reduceM && grid && fromH !== toH) {
+          gsap.set(grid, { overflow: 'hidden' });
+          gsap.fromTo(
+            grid,
+            { height: fromH },
+            {
+              height: toH,
+              duration: 0.5,
+              ease: 'power2.inOut',
+              onComplete: () => {
+                gsap.set(grid, { clearProps: 'height,overflow' });
+                ScrollTrigger.refresh();
+              },
+            },
+          );
+        } else {
+          ScrollTrigger.refresh();
+        }
+      };
+      filterButtons.forEach((btn) =>
+        btn.addEventListener('click', () => applyFilter(btn.dataset.cat || 'all')),
+      );
+
+      // ── 5. FONDO: bandas de luz que recorren la rejilla ─────
+      if (!reduceM && glowWrap) {
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top bottom',
+          end: 'bottom top',
+          onToggle: (self) => glowWrap.classList.toggle('is-paused', !self.isActive),
+        });
+      }
+      if (!reduceM && bg) {
+        gsap.fromTo(
+          bg,
+          { backgroundPositionY: '0%' },
+          {
+            backgroundPositionY: '25%',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
+          },
+        );
+      }
+    }, '#tecnologias');
   }
+
+  document.addEventListener('astro:before-swap', () => {
+    techCtx?.revert();
+    techCtx = undefined;
+  });
 
   // Eventos de Astro
   document.addEventListener('astro:page-load', initTech);
@@ -171,3 +375,163 @@ const { title, description } = Astro.props;
     initTech();
   }
 </script>
+
+<style>
+  #tecnologias {
+    overflow-anchor: none;
+    --tech-glow: rgba(255,255,255,0.2);
+  }
+
+  :global(html.light) #tecnologias {
+    --tech-glow: rgba(0, 0, 0, 0.16);
+  }
+
+  /* ── Fondo animado ─────────────────────────────────────── */
+  .tech-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.25;
+    background-image:
+      linear-gradient(var(--color-borde) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-borde) 1px, transparent 1px);
+    background-size: 64px 64px;
+    background-position: 0 0;
+    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 40%, #000, transparent 78%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000, transparent 75%);
+  }
+  .tech-glow-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    filter: drop-shadow(0 0 6px var(--tech-glow));
+  }
+  .tech-bg-glow {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.75;
+    -webkit-mask-image:
+      linear-gradient(#000 1px, transparent 1px),
+      linear-gradient(90deg, #000 1px, transparent 1px);
+    mask-image:
+      linear-gradient(#000 1px, transparent 1px),
+      linear-gradient(90deg, #000 1px, transparent 1px);
+    -webkit-mask-size: 64px 64px;
+    mask-size: 64px 64px;
+    -webkit-mask-repeat: repeat;
+    mask-repeat: repeat;
+    -webkit-mask-composite: source-over;
+    mask-composite: add;
+  }
+  .tech-bg-glow::before,
+  .tech-bg-glow::after {
+    content: '';
+    position: absolute;
+    inset: -60%;
+    will-change: transform;
+  }
+  .tech-bg-glow::before {
+    background: linear-gradient(
+      115deg,
+      transparent calc(50% - 75px),
+      var(--tech-glow) 50%,
+      transparent calc(50% + 75px)
+    );
+    animation: techSweepA 17s linear infinite;
+  }
+  .tech-bg-glow::after {
+    background: linear-gradient(
+      65deg,
+      transparent calc(50% - 75px),
+      var(--tech-glow) 50%,
+      transparent calc(50% + 75px)
+    );
+    animation: techSweepB 23s linear infinite reverse;
+  }
+  .tech-glow-wrap.is-paused .tech-bg-glow::before,
+  .tech-glow-wrap.is-paused .tech-bg-glow::after {
+    animation-play-state: paused;
+  }
+  @keyframes techSweepA {
+    from {
+      transform: translate3d(-70%, -45%, 0);
+    }
+    to {
+      transform: translate3d(70%, 45%, 0);
+    }
+  }
+  @keyframes techSweepB {
+    from {
+      transform: translate3d(55%, 65%, 0);
+    }
+    to {
+      transform: translate3d(-55%, -65%, 0);
+    }
+  }
+
+  /* ── Filtros ────────────────────────────────────────────── */
+  .tech-filter {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.45rem 1rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 9999px;
+    color: var(--color-gris-oscuro);
+    background: transparent;
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease;
+  }
+  .tech-filter:hover {
+    color: var(--color-blanco);
+    border-color: var(--color-gris-oscuro);
+  }
+  .tech-filter.is-active {
+    color: var(--color-blanco);
+    border-color: var(--color-blanco);
+    background: color-mix(in srgb, var(--color-blanco) 10%, transparent);
+  }
+
+  /* ── Tarjetas ───────────────────────────────────────────── */
+  .tech-box {
+    position: relative;
+    will-change: transform;
+  }
+  .tech-index {
+    position: absolute;
+    top: 0.9rem;
+    right: 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--color-gris-oscuro);
+    opacity: 0.7;
+  }
+
+  /* ── Footer ─────────────────────────────────────────────── */
+  .tech-footer {
+    position: relative;
+    overflow: hidden;
+  }
+  .tech-footer-line {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--color-blanco);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tech-bg,
+    .tech-glow-wrap {
+      display: none;
+    }
+  }
+</style>
+

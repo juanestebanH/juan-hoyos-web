@@ -1,192 +1,783 @@
 ---
 import { Icon } from 'astro-icon/components';
+import SceneIndex from './SceneIndex.astro';
 import { projects } from '../data/projects';
 
 interface Props {
   title: string;
   descriptions: Record<string, string>;
+  cta: string;
+  close: string;
 }
-const { title, descriptions } = Astro.props;
+const { title, descriptions, cta, close } = Astro.props;
 
-// Combinar datos fijos + descripción traducida
 const projectsWithDesc = projects.map((p) => ({
   ...p,
   description: descriptions[p.id] ?? '',
 }));
 ---
 
-<section
-  id="proyectos"
-  class="min-h-screen py-20 px-6 relative overflow-hidden"
->
-  <div class="max-w-7xl mx-auto relative z-10">
-    <h2
-      class="text-blanco mb-16 text-start text-4xl font-bold project-title-anim opacity-0"
-    >
-      {title}
-    </h2>
+<section id="proyectos" class="relative overflow-hidden">
+  <div class="projects-glow" aria-hidden="true"></div>
+  <SceneIndex index="03" />
 
-    <div class="grid md:grid-cols-2 gap-10">
-      {
-        projectsWithDesc.map((project) => (
-          <article class="group project-card opacity-0">
-            <div class="h-full flex flex-col  border border-white/10 overflow-hidden transition-colors duration-500 hover:border-primary/40 ">
-              <div class="relative h-64 overflow-hidden bg-black">
-                <img
-                  src={project.image.src}
-                  alt={project.title}
-                  class="project-img w-full h-full object-cover transition-transform duration-700"
-                />
+  <div class="projects-pin">
+    <div class="projects-head max-w-7xl mx-auto w-full px-6">
+      <h2
+        class="text-blanco text-start text-4xl font-bold project-title-anim overflow-hidden"
+      >
+        {title}
+      </h2>
+    </div>
 
-                <div class="project-overlay absolute inset-0 bg-black/60 flex items-center justify-center gap-4 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100">
-                  <a
-                    href={project.demo}
-                    target="_blank"
-                    class="p-3 bg-primary rounded-full text-blanco hover:scale-110 transition-transform flex items-center gap-2 px-5 md:px-3"
-                  >
-                    <Icon name="mdi:external-link" class="w-6 h-6" />
-                    <span class="md:hidden font-medium">Demo</span>
-                  </a>
-                  <a
-                    href={project.code}
-                    target="_blank"
-                    class="p-3 bg-white/10 backdrop-blur-md rounded-full text-blanco hover:scale-110 transition-transform border border-white/20 flex items-center gap-2 px-5 md:px-3"
-                  >
-                    <Icon name="mdi:github" class="w-6 h-6" />
-                    <span class="md:hidden font-medium">Código</span>
-                  </a>
+    <div class="projects-track-wrap">
+      <div class="projects-track">
+        {
+          projectsWithDesc.map((project) => (
+            <article class="project-panel" data-color={project.color}>
+              <div class="project-panel__inner group opacity-0">
+                <div class="project-panel__media relative h-72 md:h-[22rem] overflow-hidden bg-black border border-borde">
+                  <img
+                    src={project.image.src}
+                    alt={project.title}
+                    class="project-img w-full h-full object-cover"
+                    draggable="false"
+                  />
+
+                  <div
+                    class="project-panel__accent absolute top-0 left-0 h-full w-1.5"
+                    style={`background:${project.color}`}
+                  />
+
+                  <div class="project-overlay absolute inset-0 bg-black/25 flex flex-col items-center justify-center gap-4 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100">
+                    <button
+                      type="button"
+                      data-case
+                      class="project-panel__cta flex items-center gap-2 px-6 py-3 border border-white/40 text-white font-medium backdrop-blur-md bg-black/35 hover:bg-black/50 transition-colors"
+                    >
+                      <Icon name="mdi:arrow-expand" class="w-5 h-5" />
+                      {cta}
+                    </button>
+
+                    <div class="flex gap-4">
+                      <a
+                        data-demo
+                        href={project.demo}
+                        target="_blank"
+                        rel="noopener"
+                        class="p-3 bg-white rounded-full text-black hover:scale-110 transition-transform flex items-center gap-2 px-5 md:px-3"
+                      >
+                        <Icon name="mdi:external-link" class="w-6 h-6" />
+                        <span class="md:hidden font-medium">Demo</span>
+                      </a>
+                      <a
+                        data-code
+                        href={project.code}
+                        target="_blank"
+                        rel="noopener"
+                        class="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:scale-110 hover:bg-black/55 transition-transform border border-white/40 flex items-center gap-2 px-5 md:px-3"
+                      >
+                        <Icon name="mdi:github" class="w-6 h-6" />
+                        <span class="md:hidden font-medium">Código</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
 
-                <div
-                  class="absolute top-0 left-0 w-1.5 h-full"
-                  style={`background:${project.color}`}
-                />
-              </div>
-
-              <div class="p-8 flex-1 flex flex-col">
-                <h3 class="text-2xl text-blanco mb-3 font-bold group-hover:text-primary transition-colors">
-                  {project.title}
-                </h3>
-                <p class="text-gris-claro mb-6 line-clamp-2">
-                  {project.description}
-                </p>
-
-                <div class="flex flex-wrap gap-2 mt-auto">
-                  {project.tags.map((tag) => (
-                    <span class="px-3 py-1 text-xs font-medium text-gris-claro bg-primary/10 rounded-md border border-borde">
-                      {tag}
-                    </span>
-                  ))}
+                <div class="project-panel__info p-6 flex flex-col gap-3">
+                  <h3 class="project-panel__title text-2xl text-blanco font-bold">
+                    {project.title}
+                  </h3>
+                  <p class="project-panel__desc text-gris-claro line-clamp-2">
+                    {project.description}
+                  </p>
+                  <div class="project-panel__tags flex flex-wrap gap-2 mt-auto">
+                    {project.tags.map((tag) => (
+                      <span class="px-3 py-1 text-xs font-medium text-gris-claro bg-blanco/10 rounded-md border border-borde">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </article>
-        ))
-      }
+            </article>
+          ))
+        }
+      </div>
     </div>
   </div>
 </section>
 
+<canvas id="project-gl" class="project-gl" aria-hidden="true"></canvas>
+
+  <div
+    id="project-case"
+    class="project-case"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-label={title}
+  >
+    <div class="project-case__backdrop" data-case-close></div>
+
+    <div class="project-case__dialog">
+      <button
+        type="button"
+        data-case-close
+        aria-label={close}
+        class="project-case__close"
+      >
+        <Icon name="mdi:close" class="w-5 h-5" />
+      </button>
+
+      <div class="project-case__media"></div>
+
+      <div class="project-case__body">
+        <h3 class="project-case__title text-3xl font-bold text-blanco"></h3>
+        <p class="project-case__desc text-gris-claro leading-relaxed"></p>
+        <div class="project-case__tags flex flex-wrap gap-2"></div>
+
+        <div class="flex flex-wrap gap-4 mt-2">
+          <a
+            class="project-case__demo flex items-center gap-2 px-6 py-3 bg-blanco text-neutro rounded-full hover:scale-[1.03] transition-transform"
+            target="_blank"
+            rel="noopener"
+          >
+            <Icon name="mdi:external-link" class="w-5 h-5" />
+            Demo
+          </a>
+          <a
+            class="project-case__code flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full hover:scale-[1.03] transition-transform"
+            target="_blank"
+            rel="noopener"
+          >
+            <Icon name="mdi:github" class="w-5 h-5" />
+            Código
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { animateSectionTitleScroll } from '../util/animations';
+  import { Flip } from 'gsap/Flip';
+  import { animateTitleChars } from '../util/animations';
+  import { createProjectDistortion } from '../util/projectDistortion';
 
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, Flip);
+
+  ScrollTrigger.config({ ignoreMobileResize: true });
 
   function initProjects() {
-    const cards = document.querySelectorAll('.project-card');
-    const isTouchDevice =
-      'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const section = document.getElementById('proyectos');
+    if (!section || section.dataset.inited === 'true') return;
+    section.dataset.inited = 'true';
 
-    animateSectionTitleScroll('.project-title-anim', '#proyectos');
+    const cleanups = [];
+    const onCleanup = (fn) => cleanups.push(fn);
 
-    cards.forEach((card, i) => {
-      const fromX = i % 2 === 0 ? -120 : 120;
+    const ctx = gsap.context(() => {
+      const track = section.querySelector('.projects-track');
+      const panels = Array.from(
+        section.querySelectorAll('.project-panel'),
+      );
+
+      const getDistance = () =>
+        Math.max(0, track.scrollWidth - window.innerWidth);
+
+      // ── Revelado del título ──────────────────────────────
+      animateTitleChars('.project-title-anim');
+
+      // ── Aparición de las tarjetas ─────────────────────────
+      const innerEls = panels.map((p) =>
+        p.querySelector('.project-panel__inner'),
+      );
 
       gsap.fromTo(
-        card,
+        innerEls,
+        { y: 44, opacity: 0, filter: 'blur(8px)' },
         {
-          x: fromX,
-          y: 30,
-          opacity: 0,
-          filter: 'blur(10px)',
-        },
-        {
-          scrollTrigger: {
-            trigger: card,
-            start: 'top 92%',
-            toggleActions: 'restart none none reverse',
-          },
-          x: 0,
           y: 0,
           opacity: 1,
           filter: 'blur(0px)',
-          duration: 1.4,
-          delay: (i % 2) * 0.2,
-          ease: 'power3.out',
+          duration: 1.05,
+          stagger: 0.13,
+          ease: 'power2.out',
+          scrollTrigger: {
+          trigger: track,
+          start: 'left 80%',
+          toggleActions: 'play none none reset',
+
+          },
         },
       );
 
-      const img = card.querySelector('.project-img');
+      // ── Color ambiente por proyecto ────────────────────────
+      let currentActive = -1;
 
-      if (!isTouchDevice) {
-        card.addEventListener('mousemove', (e) => {
-          const rect = card.getBoundingClientRect();
-          const xPos =
-            ((e as MouseEvent).clientX - rect.left) / rect.width - 0.5;
-          const yPos =
-            ((e as MouseEvent).clientY - rect.top) / rect.height - 0.5;
+      function colorToHex(panel) {
+        const accent = panel.querySelector('.project-panel__accent');
+        if (!accent) return '#5dcaa5';
+        const rgb = getComputedStyle(accent).backgroundColor;
+        const m = rgb.match(/\d+/g);
+        if (!m) return '#5dcaa5';
+        return (
+          '#' +
+          m
+            .slice(0, 3)
+            .map((n) => (+n).toString(16).padStart(2, '0'))
+            .join('')
+        );
+      }
 
-          gsap.to(img, {
-            x: xPos * 30,
-            y: yPos * 30,
-            scale: 1.12,
-            duration: 0.7,
-            ease: 'power2.out',
-          });
+      function updateActive() {
+        const center = window.innerWidth / 2;
+        let best = 0;
+        let bestD = Infinity;
+
+        panels.forEach((p, i) => {
+          const r = p.getBoundingClientRect();
+          const d = Math.abs(r.left + r.width / 2 - center);
+          if (d < bestD) {
+            bestD = d;
+            best = i;
+          }
         });
 
-        card.addEventListener('mouseleave', () => {
-          gsap.to(img, {
-            x: 0,
-            y: 0,
-            scale: 1,
-            duration: 0.7,
-            ease: 'power2.out',
+        if (best === currentActive) return;
+        currentActive = best;
+
+        panels.forEach((p, i) => p.classList.toggle('is-active', i === best));
+
+        const panel = panels[best];
+        section.style.setProperty('--project-accent', panel.dataset.color);
+
+        window.dispatchEvent(
+          new CustomEvent('project:accent', { detail: colorToHex(panel) }),
+        );
+      }
+
+      const trackWrap = section.querySelector('.projects-track-wrap');
+      trackWrap.addEventListener('scroll', updateActive, { passive: true });
+      updateActive();
+
+      // ── Desktop: scroll horizontal anclado (pin) ───────────
+      const mm = gsap.matchMedia();
+
+      mm.add(
+        '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
+        () => {
+          section.classList.add('is-pinned');
+
+          gsap.to(track, {
+            x: () => -getDistance(),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: () => '+=' + getDistance(),
+              pin: true,
+              scrub: 1,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+              snap: {
+                snapTo: (value) =>
+                  panels.length > 1
+                    ? gsap.utils.snap(1 / (panels.length - 1), value)
+                    : 0,
+                duration: { min: 0.2, max: 0.6 },
+                delay: 0.05,
+                ease: 'power1.inOut',
+              },
+              onUpdate: updateActive,
+              onRefresh: updateActive,
+            },
           });
+
+          updateActive();
+
+          return () => {
+            section.classList.remove('is-pinned');
+          };
+        },
+      );
+
+      // ── Móvil / tablet: mismo pin horizontal con snap ──────
+      mm.add(
+        '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
+        () => {
+          section.classList.add('is-pinned');
+
+          gsap.to(track, {
+            x: () => -getDistance(),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: section,
+              start: 'top top',
+              end: () => '+=' + getDistance(),
+              pin: true,
+              scrub: 1,
+              anticipatePin: 0,
+              invalidateOnRefresh: true,
+              snap: {
+                snapTo: (value) =>
+                  panels.length > 1
+                    ? gsap.utils.snap(1 / (panels.length - 1), value)
+                    : 0,
+                duration: { min: 0.25, max: 0.7 },
+                delay: 0.1,
+                ease: 'power1.inOut',
+              },
+              onUpdate: updateActive,
+              onRefresh: updateActive,
+            },
+          });
+
+          updateActive();
+
+          return () => {
+            section.classList.remove('is-pinned');
+          };
+        },
+      );
+
+      // ── Distorsión WebGL al hover (solo desktop) ───────────
+      const glCanvas = document.getElementById('project-gl');
+
+      mm.add(
+        '(min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
+        () => {
+          if (!glCanvas) return;
+
+          let distortion = null;
+          let currentPanel = null;
+          let currentSrc = '';
+
+          function resizeCanvas(media) {
+            if (!distortion) return;
+            distortion.resize(media.clientWidth, media.clientHeight);
+          }
+
+          function onMove(e) {
+            if (!currentPanel || !distortion) return;
+            const media = currentPanel.querySelector('.project-panel__media');
+            const r = media.getBoundingClientRect();
+            const x = (e.clientX - r.left) / r.width;
+            const y = 1 - (e.clientY - r.top) / r.height;
+            distortion.setPointer(x, y);
+          }
+
+          function enter(panel) {
+            if (!panel) return;
+            currentPanel = panel;
+            const media = panel.querySelector('.project-panel__media');
+            const img = panel.querySelector('.project-img');
+            if (!media || !img) return;
+
+            if (!distortion) distortion = createProjectDistortion(glCanvas);
+
+            // Insertamos el canvas antes de la franja y del overlay,
+            // para que la distorsión quede por debajo de los botones.
+            const accent = media.querySelector('.project-panel__accent');
+            media.insertBefore(glCanvas, accent);
+            resizeCanvas(media);
+
+            const src = img.getAttribute('src') || '';
+
+            const show = () => {
+              if (currentPanel !== panel) return;
+              resizeCanvas(media);
+              glCanvas.classList.add('is-on');
+              distortion.setStrength(1);
+              distortion.resume();
+            };
+
+            if (src !== currentSrc) {
+              currentSrc = src;
+              distortion.setTexture(src).then(show);
+            } else {
+              show();
+            }
+          }
+
+          function leave() {
+            currentPanel = null;
+            glCanvas.classList.remove('is-on');
+            if (distortion) distortion.setStrength(0);
+          }
+
+          panels.forEach((panel) => {
+            const media = panel.querySelector('.project-panel__media');
+            media.addEventListener('mouseenter', () => enter(panel));
+            media.addEventListener('mousemove', onMove);
+            media.addEventListener('mouseleave', leave);
+          });
+
+          return () => {
+            leave();
+            distortion && distortion.pause();
+            glCanvas.classList.remove('is-on');
+          };
+        },
+      );
+
+      // ── Case-study a pantalla completa (FLIP) ──────────────
+      const caseEl = document.getElementById('project-case');
+      const caseMedia = caseEl.querySelector('.project-case__media');
+      const caseTitle = caseEl.querySelector('.project-case__title');
+      const caseDesc = caseEl.querySelector('.project-case__desc');
+      const caseTags = caseEl.querySelector('.project-case__tags');
+      const caseDemo = caseEl.querySelector('.project-case__demo');
+      const caseCode = caseEl.querySelector('.project-case__code');
+      const caseBackdrop = caseEl.querySelector('.project-case__backdrop');
+      const caseBody = caseEl.querySelector('.project-case__body');
+
+      let caseImg = null;
+      let caseOrigin = null;
+      let caseOpen = false;
+
+      const lenis = () => window.__lenis;
+
+      function openCase(panel) {
+        if (caseOpen) return;
+        const img = panel.querySelector('.project-img');
+        const media = panel.querySelector('.project-panel__media');
+        if (!img || !media) return;
+
+        const titleEl = panel.querySelector('.project-panel__title');
+        const descEl = panel.querySelector('.project-panel__desc');
+        const tags = panel.querySelectorAll('.project-panel__tags span');
+        const demo = panel.querySelector('a[data-demo]');
+        const code = panel.querySelector('a[data-code]');
+
+        caseTitle.textContent = titleEl ? titleEl.textContent : '';
+        caseDesc.textContent = descEl ? descEl.textContent : '';
+        caseTags.innerHTML = '';
+        tags.forEach((t) => {
+          const s = document.createElement('span');
+          s.textContent = t.textContent;
+          s.className = t.className;
+          caseTags.appendChild(s);
         });
-      } else {
-        gsap.to(img, {
-          scrollTrigger: {
-            trigger: card,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: true,
-          },
-          y: 40,
-          ease: 'none',
+        caseDemo.href = demo ? demo.href : '#';
+        caseCode.href = code ? code.href : '#';
+
+        glCanvas && glCanvas.classList.remove('is-on');
+
+        caseOpen = true;
+        caseImg = img;
+        caseOrigin = media;
+        caseEl.classList.add('is-open');
+        caseEl.setAttribute('aria-hidden', 'false');
+        lenis() && lenis().stop();
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          caseMedia.appendChild(img);
+          gsap.fromTo(
+            [caseBackdrop, caseBody],
+            { opacity: 0 },
+            { opacity: 1, duration: 0.3 },
+          );
+          return;
+        }
+
+        gsap.set(img, { clearProps: 'transform' });
+        const state = Flip.getState(img);
+        caseMedia.appendChild(img);
+
+        Flip.from(state, {
+          duration: 0.8,
+          ease: 'power3.inOut',
+          absolute: true,
+        });
+
+        gsap.fromTo(
+          [caseBackdrop, caseBody],
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
+        );
+      }
+
+      function closeCase() {
+        if (!caseOpen || !caseImg) return;
+        caseOpen = false;
+
+        const reduced = window.matchMedia(
+          '(prefers-reduced-motion: reduce)',
+        ).matches;
+
+        gsap.to([caseBackdrop, caseBody], {
+          opacity: 0,
+          duration: 0.25,
+          ease: 'power2.in',
+        });
+
+        const finish = () => {
+          caseEl.classList.remove('is-open');
+          caseEl.setAttribute('aria-hidden', 'true');
+          caseImg = null;
+          caseOrigin = null;
+          lenis() && lenis().start();
+        };
+
+        if (reduced) {
+          caseOrigin.appendChild(caseImg);
+          finish();
+          return;
+        }
+
+        const state = Flip.getState(caseImg);
+        caseOrigin.appendChild(caseImg);
+        Flip.from(state, {
+          duration: 0.7,
+          ease: 'power3.inOut',
+          absolute: true,
+          onComplete: finish,
         });
       }
+
+      caseEl
+        .querySelectorAll('[data-case-close]')
+        .forEach((el) => el.addEventListener('click', closeCase));
+
+      const onKeydown = (e) => {
+        if (e.key === 'Escape') closeCase();
+      };
+      document.addEventListener('keydown', onKeydown);
+      onCleanup(() => document.removeEventListener('keydown', onKeydown));
+
+      panels.forEach((panel) => {
+        const media = panel.querySelector('.project-panel__media');
+        media.addEventListener('click', (e) => {
+          if (e.target.closest('a')) return;
+          openCase(panel);
+        });
+      });
     });
+
+    window.addEventListener(
+      'astro:before-swap',
+      () => {
+        cleanups.forEach((fn) => fn());
+        cleanups.length = 0;
+        ctx.revert();
+      },
+      { once: true },
+    );
   }
 
   document.addEventListener('astro:page-load', initProjects);
   initProjects();
 </script>
+
 <style>
-  /* Prevenir saltos visuales */
-  .project-card,
-  .project-title-anim {
-    will-change: transform, opacity;
+  #proyectos {
+    --project-accent: #ffffff;
+    z-index: 21;
+  }
+
+  .projects-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-color: var(--project-accent);
+    opacity: 0.16;
+    transition:
+      background-color 0.8s ease,
+      opacity 0.8s ease;
+    -webkit-mask-image: radial-gradient(
+      60% 55% at 50% 45%,
+      #000 0%,
+      transparent 72%
+    );
+    mask-image: radial-gradient(60% 55% at 50% 45%, #000 0%, transparent 72%);
+  }
+
+  .projects-pin {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3rem;
+    padding-block: 5rem;
+  }
+
+  .projects-track-wrap {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .projects-track-wrap::-webkit-scrollbar {
+    display: none;
+  }
+
+  .projects-track {
+    display: flex;
+    gap: 2rem;
+    padding-inline: max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem));
+  }
+
+  .project-panel {
+    flex: 0 0 auto;
+    width: clamp(18rem, 82vw, 42rem);
+    scroll-snap-align: center;
+    transition: opacity 0.5s ease;
+  }
+
+  .project-panel__inner {
+    position: relative;
+  }
+
+  .project-panel__cta {
+    border-radius: 9999px;
+  }
+
+  .project-case__code {
+    background: color-mix(in srgb, var(--color-blanco) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 20%, transparent);
+    color: var(--color-blanco);
+  }
+
+  .project-case__code:hover {
+    background: color-mix(in srgb, var(--color-blanco) 14%, transparent);
+  }
+
+
+  #proyectos.is-pinned .projects-track-wrap {
+    overflow: hidden;
+    scroll-snap-type: none;
+  }
+
+  #proyectos.is-pinned .projects-track {
+    will-change: transform;
+  }
+
+  #proyectos.is-pinned .project-panel {
+    opacity: 0.45;
+  }
+
+  #proyectos.is-pinned .project-panel.is-active {
+    opacity: 1;
+  }
+
+  .project-gl {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .project-gl.is-on {
+    opacity: 1;
+  }
+
+  .project-case {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .project-case.is-open {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .project-case__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(6px);
+  }
+
+  .project-case__dialog {
+    position: relative;
+    z-index: 2;
+    width: min(64rem, 92vw);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--color-neutro);
+    border: 1px solid var(--color-borde);
+  }
+
+  .project-case__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    color: var(--color-blanco);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    transition: background 0.3s ease;
+  }
+
+  .project-case__close:hover {
+    background: rgba(0, 0, 0, 0.75);
+  }
+
+  .project-case__media {
+    position: relative;
+    width: 100%;
+    height: min(52vh, 32rem);
+    flex: none;
+    overflow: hidden;
+    background: #000;
+  }
+
+  .project-case__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .project-case__body {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 1023px) {
+    .project-panel {
+      width: calc(100vw - 3rem);
+    }
   }
 
   @media (max-width: 768px) {
     .project-overlay {
       background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
       opacity: 1;
-      align-items: flex-end;
+      justify-content: flex-end;
       padding-bottom: 2rem;
+    }
+
+    .projects-pin {
+      gap: 2rem;
+      padding-block: 3rem;
     }
   }
 </style>
+

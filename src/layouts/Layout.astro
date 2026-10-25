@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
-import CursorSerpiente from '../components/CursorSerpiente.astro';
+import CursorGota from '../components/CursorGota.astro';
+import Loader from '../components/Loader.astro';
 
 interface Props {
   title?: string;
@@ -16,7 +17,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
-<html lang={Astro.url.pathname.startsWith('/en') ? 'en' : 'es'}>
+<html
+  class="is-loading"
+  lang={Astro.url.pathname.startsWith('/en') ? 'en' : 'es'}
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -53,29 +57,40 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@400;500;600;700;900&display=swap"
       rel="stylesheet"
     />
 
     <meta name="generator" content={Astro.generator} />
 
+    <noscript
+      ><style>
+        #loader {
+          display: none !important;
+        }
+        html.is-loading {
+          scrollbar-width: auto;
+        }
+        html.is-loading ::-webkit-scrollbar {
+          display: block;
+        }
+      </style></noscript
+    >
+
     <script is:inline>
-      document.documentElement.style.opacity = '0';
-      document.documentElement.style.transition = 'opacity 0.15s ease';
-      window.addEventListener('load', () => {
-        document.documentElement.style.opacity = '1';
-      });
-      document.addEventListener('astro:before-preparation', () => {
-        document.documentElement.style.opacity = '0';
-      });
-      document.addEventListener('astro:page-load', () => {
-        document.documentElement.style.opacity = '1';
+      // Arrancar siempre desde el tope (el loader revela la página desde arriba)
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      window.scrollTo(0, 0);
+      // La barra de scroll queda oculta mientras el loader esté activo.
+      window.addEventListener('loader:done', () => {
+        document.documentElement.classList.remove('is-loading');
       });
     </script>
   </head>
 
   <body>
+    <Loader />
     <slot />
-    <CursorSerpiente />
+    <CursorGota />
   </body>
 </html>

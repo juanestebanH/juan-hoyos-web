@@ -1,241 +1,580 @@
 ---
+import SceneIndex from './SceneIndex.astro';
 import foto from '../assets/juan.png';
 
 interface Props {
   title: string;
-  subtitle: string;
   paragraphs: string[];
   btn_cv: string;
   cv_path: string;
 }
-const { title, subtitle, paragraphs, btn_cv, cv_path } = Astro.props;
+const { title, paragraphs, btn_cv, cv_path } = Astro.props;
+
+const chips = ['React', 'Node.js', 'MySQL', 'TailwindCSS', 'Python', 'JavaScript'];
 ---
 
-<section id="sobre-mi" class="py-20 px-6 relative">
-  <div class="max-w-7xl mx-auto relative z-10">
-    <!-- Título -->
-    <div class="text-start mb-16">
-      <h2 class="about-title text-4xl md:text-5xl font-bold text-blanco">
-        {title}
-      </h2>
-    </div>
+<section id="sobre-mi" class="relative py-24 md:py-32 px-6">
+  <div class="about-aurora" aria-hidden="true"></div>
+  <SceneIndex index="05" />
 
-    <!-- Grid -->
-    <div class="grid md:grid-cols-2 gap-12 items-center">
+  <div class="about-inner relative z-10 mx-auto max-w-7xl">
+    <h2 class="about-title text-4xl md:text-5xl font-bold text-blanco mb-16 text-start overflow-hidden">
+      {title}
+    </h2>
+
+    <div class="about-grid">
       <!-- Texto -->
-      <div class="about-card">
-        <div class="bg-negro-claro p-8 md:p-12 shadow-[8px_8px_0_black]">
-          <h3
-            class="about-subtitle text-2xl md:text-3xl font-bold text-secondary mb-6"
-          >
-            {subtitle}
-          </h3>
-
-          <div class="space-y-4">
-            {
-              paragraphs.map((p) => (
-                <p class="about-line text-gris-claro text-lg leading-relaxed">
-                  {p}
-                </p>
-              ))
-            }
-          </div>
-
-          <div class="mt-8">
-            <a
-              href={cv_path}
-              download="CV_JuanHoyos.pdf"
-              class="about-btn inline-block px-6 py-3 bg-primary text-blanco font-medium border-2 border-black shadow-[4px_4px_0_black]"
-            >
-              {btn_cv}
-            </a>
-          </div>
+      <div class="about-copy">
+        <div class="about-lines">
+          {paragraphs.map((p) => <p class="about-line">{p}</p>)}
         </div>
+
+        <a href={cv_path} download="CV_JuanHoyos.pdf" class="about-btn">
+          <span>{btn_cv}</span>
+        </a>
       </div>
 
-      <!-- Imagen -->
-      <div class="about-image-wrap">
-        <div class="about-image w-full h-96 md:h-125">
-          <canvas id="model-canvas" class="w-full h-full"></canvas>
+      <!-- Escultura 3D -->
+      <div class="about-visual">
+        <div class="about-stage">
+          <canvas id="model-canvas" class="about-canvas"></canvas>
+          <img src={foto.src} alt="Juan Hoyos" class="about-photo" />
+
+          <div class="about-chips" aria-hidden="true">
+            {chips.map((c) => <span class="about-chip">{c}</span>)}
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
+<style>
+  #sobre-mi {
+    --about-accent: var(--color-blanco);
+  }
+
+  /* ── Aurora ─────────────────────────────────────── */
+  .about-aurora {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .about-aurora::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      46% 40% at 68% 40%,
+      color-mix(in srgb, var(--about-accent) 30%, transparent),
+      transparent 70%
+    );
+    filter: blur(38px);
+    animation: about-breathe 11s ease-in-out infinite;
+  }
+
+  :global(html.light) #sobre-mi .about-aurora::before {
+    background: radial-gradient(
+      46% 40% at 68% 40%,
+      color-mix(in srgb, var(--color-blanco) 8%, transparent),
+      transparent 70%
+    );
+  }
+
+
+  #sobre-mi.is-paused .about-aurora::before {
+    animation-play-state: paused;
+  }
+
+  @keyframes about-breathe {
+    0%,
+    100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.07);
+    }
+  }
+
+  /* ── Layout ─────────────────────────────────────── */
+  .about-grid {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .about-visual {
+    position: relative;
+    order: -1;
+  }
+
+  .about-stage {
+    position: relative;
+    width: 100%;
+    height: 20rem;
+  }
+
+  .about-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .about-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .about-photo.is-visible {
+    opacity: 1;
+  }
+
+  @media (min-width: 768px) {
+    .about-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .about-visual {
+      order: 0;
+      position: sticky;
+      top: 12vh;
+    }
+
+    .about-stage {
+      height: 34rem;
+    }
+  }
+
+  /* ── Chips flotantes ────────────────────────────── */
+  .about-chips {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .about-chip {
+    position: absolute;
+    --tx: 0px;
+    --ty: 0px;
+    --cs: 1;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border-radius: 9999px;
+    color: var(--about-accent);
+    border: 1px solid color-mix(in srgb, var(--about-accent) 45%, transparent);
+    background: color-mix(in srgb, var(--color-neutro) 55%, transparent);
+    backdrop-filter: blur(6px);
+    will-change: transform;
+    transform: translate3d(var(--tx), var(--ty), 0) scale(var(--cs));
+  }
+
+  .about-chip:nth-child(1) {
+    top: 8%;
+    left: 2%;
+  }
+  .about-chip:nth-child(2) {
+    top: 26%;
+    right: 2%;
+  }
+  .about-chip:nth-child(3) {
+    top: 56%;
+    left: -1%;
+  }
+  .about-chip:nth-child(4) {
+    top: 74%;
+    right: 6%;
+  }
+  .about-chip:nth-child(5) {
+    bottom: 2%;
+    left: 16%;
+  }
+  .about-chip:nth-child(6) {
+    top: 42%;
+    right: -3%;
+  }
+
+  /* ── Texto ──────────────────────────────────────── */
+  .about-copy {
+    position: relative;
+    z-index: 2;
+  }
+
+  .about-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .about-line {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--color-gris-claro);
+  }
+
+  .about-line :global(.is-kw) {
+    color: var(--about-accent);
+    font-weight: 600;
+  }
+
+  .about-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, var(--about-accent) 50%, transparent);
+    background: color-mix(in srgb, var(--about-accent) 12%, transparent);
+    color: var(--color-blanco);
+    font-weight: 500;
+    transition:
+      transform 0.3s ease,
+      background 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .about-btn:hover {
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--about-accent) 22%, transparent);
+    box-shadow: 0 0 44px -14px var(--about-accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-aurora::before {
+      animation: none;
+    }
+
+    .about-chip {
+      transform: none !important;
+    }
+  }
+</style>
+
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { SplitText } from 'gsap/SplitText';
   // @ts-ignore
   import * as THREE from 'three';
   // @ts-ignore
   import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-  import { animateSectionTitleScroll } from '../util/animations';
+  // @ts-ignore
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+  import { animateTitleChars } from '../util/animations';
 
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+
+  const KEYWORDS = ['React', 'Node.js', 'MySQL', 'TailwindCSS', 'Python', 'JavaScript'];
+
+  let ctx: gsap.Context | undefined;
+  let teardown: (() => void) | undefined;
 
   function initAbout() {
-    animateSectionTitleScroll('.about-title', '#sobre-mi');
+    const section = document.querySelector<HTMLElement>('#sobre-mi');
+    if (!section || section.dataset.inited === 'true') return;
+    section.dataset.inited = 'true';
 
-    // ── Three.js setup ──────────────────────────────────────────
-    const canvas = document.getElementById('model-canvas') as HTMLCanvasElement;
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      antialias: true,
-    });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canvas = section.querySelector<HTMLCanvasElement>('#model-canvas');
+    const photo = section.querySelector<HTMLElement>('.about-photo');
+    const chips = gsap.utils.toArray<HTMLElement>('.about-chip', section);
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      45,
-      canvas.clientWidth / canvas.clientHeight,
-      0.1,
-      100,
-    );
+    // Estado compartido con el render loop
+    let scrollProgress = 0;
+    let targetCx = 0;
+    let targetCy = 0;
+    let curCx = 0;
+    let curCy = 0;
+    let running = true;
+    const intro = { p: 0 }; // 0 → 1
 
-    // Iluminación
-    scene.add(new THREE.AmbientLight(0xffffff, 3));
-
-    // Luz frontal principal
-    const frontLight = new THREE.DirectionalLight(0xffffff, 3);
-    frontLight.position.set(0, 2, 5);
-    scene.add(frontLight);
-
-    // Luz desde arriba
-    const topLight = new THREE.DirectionalLight(0xffffff, 2);
-    topLight.position.set(0, 10, 0);
-    scene.add(topLight);
-
-    // Luz de relleno desde la izquierda (elimina sombras duras)
-    const fillLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    fillLight.position.set(-5, 0, 3);
-    scene.add(fillLight);
-
-    // Luz de relleno desde la derecha
-    const rimLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    rimLight.position.set(5, 0, 3);
-    scene.add(rimLight);
-
-    // ── Estado del mouse ────────────────────────────────────────
-    let targetRotX = 0;
-    let targetRotY = 0;
+    let renderer: THREE.WebGLRenderer | null = null;
+    let scene: THREE.Scene | null = null;
+    let camera: THREE.PerspectiveCamera | null = null;
+    let accentLight: THREE.PointLight | null = null;
     let model: THREE.Group | null = null;
+    let modelBaseY = 0;
+    let modelRise = 0.4;
+    let rafId = 0;
 
-    document.addEventListener('mousemove', (e) => {
-      const x = (e.clientY / window.innerHeight - 0.5) * 2;
-      const y = (e.clientX / window.innerWidth - 0.5) * 2;
-      targetRotX = x * 0.3;
-      targetRotY = y * 0.5;
-    });
+    const showPhoto = () => {
+      if (canvas) canvas.style.display = 'none';
+      photo?.classList.add('is-visible');
+    };
 
-    // ── Carga del modelo ────────────────────────────────────────
-    const loader = new GLTFLoader();
-    loader.load('juan-3d.glb', (gltf: any) => {
-      model = gltf.scene as THREE.Group;
+    // ── Three.js ─────────────────────────────────────
+    if (canvas) {
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
 
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      model.position.sub(center);
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          45,
+          canvas.clientWidth / canvas.clientHeight || 1,
+          0.1,
+          100,
+        );
 
-      scene.add(model);
+        scene.add(new THREE.AmbientLight(0xffffff, 2.2));
 
-      // Ajustar cámara al tamaño real del modelo
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fov = camera.fov * (Math.PI / 180);
-      camera.position.z = (maxDim / 2 / Math.tan(fov / 2)) * 1.2;
-      camera.updateProjectionMatrix();
-    });
+        const key = new THREE.DirectionalLight(0xffffff, 2.6);
+        key.position.set(0, 2, 5);
+        scene.add(key);
 
-    // ── Loop con seguimiento suave del mouse ────────────────────
-    renderer.setAnimationLoop(() => {
-      if (model) {
-        // Lerp: persigue el objetivo suavemente
-        model.rotation.x += (targetRotX - model.rotation.x) * 0.05;
-        model.rotation.y += (targetRotY - model.rotation.y) * 0.05;
+        const top = new THREE.DirectionalLight(0xffffff, 1.6);
+        top.position.set(0, 10, 0);
+        scene.add(top);
+
+        const fill = new THREE.DirectionalLight(0xffffff, 1.3);
+        fill.position.set(-5, 0, 3);
+        scene.add(fill);
+
+        const accentHex = 0xffffff;
+        accentLight = new THREE.PointLight(accentHex, 45, 14, 2);
+        accentLight.position.set(3, 2, 4);
+        scene.add(accentLight);
+
+        try {
+          const pmrem = new THREE.PMREMGenerator(renderer);
+          scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+        } catch {
+          /* entorno opcional */
+        }
+
+        const renderOnce = () => {
+          if (renderer && scene && camera) renderer.render(scene, camera);
+        };
+
+        const loader = new GLTFLoader();
+        loader.load(
+          '/juan-3d.glb',
+          (gltf: any) => {
+            model = gltf.scene as THREE.Group;
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            model.position.sub(center);
+            modelBaseY = model.position.y;
+            modelRise = size.y * 0.3;
+
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180;
+            (camera as THREE.PerspectiveCamera).position.z = (maxDim / 2 / Math.tan(fov / 2)) * 1.15;
+            scene?.add(model);
+            if (reduced) renderOnce();
+          },
+          undefined,
+          showPhoto,
+        );
+
+        const resize = () => {
+          if (!renderer || !camera || !canvas) return;
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          if (!w || !h) return;
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          if (reduced) renderOnce();
+        };
+        window.addEventListener('resize', resize);
+
+        const onMove = (e: PointerEvent) => {
+          targetCy = (e.clientX / window.innerWidth - 0.5) * 2;
+          targetCx = (e.clientY / window.innerHeight - 0.5) * 2;
+        };
+        window.addEventListener('pointermove', onMove, { passive: true });
+
+        const chipPos = chips.map(() => ({ x: 0, y: 0 }));
+
+        const loop = () => {
+          rafId = requestAnimationFrame(loop);
+          if (!running) return;
+
+          curCx += (targetCx - curCx) * 0.06;
+          curCy += (targetCy - curCy) * 0.06;
+
+          if (model) {
+            model.rotation.y = Math.sin(scrollProgress * Math.PI) * 0.5 + curCy * 0.5;
+            model.rotation.x = curCx * 0.25;
+            model.rotation.z = Math.sin(scrollProgress * Math.PI) * 0.05;
+            model.scale.setScalar(0.85 + intro.p * 0.15);
+            model.position.y = modelBaseY - (1 - intro.p) * modelRise;
+          }
+
+          if (canvas && !photo?.classList.contains('is-visible')) {
+            canvas.style.opacity = `${intro.p}`;
+          }
+
+          if (accentLight) {
+            accentLight.position.x = 3 + curCy * 3;
+            accentLight.position.y = 2 - curCx * 3;
+          }
+
+          const t = performance.now() / 1400;
+          chips.forEach((chip, i) => {
+            const depth = 12 + (i % 3) * 10;
+            const tx = curCy * depth;
+            const ty = curCx * depth * 0.8 + Math.sin(t + i) * 6;
+            chipPos[i].x += (tx - chipPos[i].x) * 0.08;
+            chipPos[i].y += (ty - chipPos[i].y) * 0.08;
+            chip.style.setProperty('--tx', `${chipPos[i].x}px`);
+            chip.style.setProperty('--ty', `${chipPos[i].y}px`);
+          });
+
+          renderOnce();
+        };
+
+        if (!reduced) loop();
+        else renderOnce();
+
+        teardown = () => {
+          cancelAnimationFrame(rafId);
+          window.removeEventListener('resize', resize);
+          window.removeEventListener('pointermove', onMove);
+          renderer?.dispose();
+        };
+      } catch {
+        showPhoto();
       }
-      renderer.render(scene, camera);
-    });
+    } else {
+      showPhoto();
+    }
 
-    // ── Responsivo ──────────────────────────────────────────────
-    const ro = new ResizeObserver(() => {
-      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-      camera.aspect = canvas.clientWidth / canvas.clientHeight;
-      camera.updateProjectionMatrix();
-    });
-    ro.observe(canvas);
+    // ── GSAP ─────────────────────────────────────────
+    ctx = gsap.context(() => {
+      animateTitleChars('.about-title');
 
-    // ── Animaciones GSAP ────────────────────────────────────────
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '#sobre-mi',
-        start: 'top 75%',
-        toggleActions: 'play none none reset',
-      },
-    });
+      // Accesibilidad: sin movimiento
+      if (reduced) return;
 
-    tl.from('.about-subtitle', {
-      y: 20,
-      opacity: 0,
-      duration: 0.7,
-      ease: 'power3.out',
-    });
+      // Scroll → progreso del modelo + pausa fuera del viewport
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top bottom',
+        end: 'bottom top',
+        onUpdate: (self) => {
+          scrollProgress = self.progress;
+        },
+        onToggle: (self) => section.classList.toggle('is-paused', !self.isActive),
+        onEnter: () => {
+          running = true;
+        },
+        onLeave: () => {
+          running = false;
+        },
+        onEnterBack: () => {
+          running = true;
+        },
+        onLeaveBack: () => {
+          running = false;
+        },
+      });
 
-    tl.from(
-      '.about-line',
-      {
-        y: 25,
-        opacity: 0,
-        stagger: 0.18,
-        duration: 0.75,
-        ease: 'power3.out',
-      },
-      '-=0.4',
-    );
+      // Modelo 3D: materializa al entrar
+      gsap.to(intro, {
+        p: 1,
+        duration: 1.8,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 75%',
+          toggleActions: 'play none none reset',
+        },
+      });
 
-    tl.from(
-      '.about-btn',
-      {
+      // Chips: entrada escalonada
+      gsap.fromTo(
+        chips,
+        { opacity: 0, '--cs': 0.6 },
+        {
+          opacity: 1,
+          '--cs': 1,
+          duration: 0.85,
+          ease: 'back.out(1.4)',
+          stagger: 0.13,
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 72%',
+            toggleActions: 'play none none reset',
+          },
+        },
+      );
+
+      // Aurora que deriva con el scroll
+      gsap.fromTo(
+        '.about-aurora',
+        { yPercent: -4 },
+        {
+          yPercent: 4,
+          ease: 'none',
+          scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+        },
+      );
+
+      // Líneas: revelado palabra por palabra + resaltado de tecnologías
+      gsap.utils.toArray<HTMLElement>('.about-line').forEach((line) => {
+        const split = new SplitText(line, { type: 'words' });
+        split.words.forEach((word) => {
+          const clean = word.textContent?.replace(/[.,;:()]/g, '').trim() ?? '';
+          if (KEYWORDS.some((k) => k.toLowerCase() === clean.toLowerCase())) {
+            word.classList.add('is-kw');
+          }
+        });
+        gsap.from(split.words, {
+          y: 14,
+          opacity: 0,
+          duration: 0.6,
+          ease: 'power3.out',
+          stagger: 0.02,
+          scrollTrigger: { trigger: line, start: 'top 88%', toggleActions: 'play none none reset' },
+        });
+      });
+
+      // Botón
+      gsap.from('.about-btn', {
         y: 20,
         opacity: 0,
         duration: 0.6,
         ease: 'back.out(1.7)',
-      },
-      '-=0.3',
-    );
+        scrollTrigger: { trigger: '.about-btn', start: 'top 92%', toggleActions: 'play none none reset' },
+      });
+    }, section);
 
-    tl.from(
-      '.about-image',
-      {
-        x: 80,
-        opacity: 0,
-        duration: 1,
-        ease: 'power3.out',
+    window.addEventListener(
+      'astro:before-swap',
+      () => {
+        teardown?.();
+        ctx?.revert();
+        ctx = undefined;
+        section.dataset.inited = 'false';
       },
-      '-=1',
+      { once: true },
     );
-
-    // Flotación constante
-    gsap.to('.about-image-wrap', {
-      y: -12,
-      duration: 2.8,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut',
-    });
   }
 
   document.addEventListener('astro:page-load', initAbout);
   initAbout();
 </script>
 
-<style>
-  .about-image,
-  .about-line,
-  .about-title {
-    will-change: transform, opacity;
-  }
-</style>

@@ -1,0 +1,450 @@
+---
+// Cursor "gota líquida" V2: canvas fullscreen, estela gooey de 9 SDF
+// unidos con smooth-min, ondas internas (misma fórmula que projects),
+// ripples emitidos y rim cromático.
+---
+
+<canvas id="cursor-gota"></canvas>
+
+<script>
+  const HOVER_SEL =
+    'a, button, input, textarea, select, [role="button"], .project-panel, [data-case]';
+
+  const reduceMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)',
+  ).matches;
+  const coarse = window.matchMedia('(pointer: coarse)').matches;
+
+  let canvas = document.getElementById(
+    'cursor-gota',
+  ) as HTMLCanvasElement | null;
+
+  function hexToRgb(hex: string) {
+    return {
+      r: parseInt(hex.slice(1, 3), 16),
+      g: parseInt(hex.slice(3, 5), 16),
+      b: parseInt(hex.slice(5, 7), 16),
+    };
+  }
+
+  if (canvas && !reduceMotion && !coarse) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const TRAIL_N = 9;
+    const RIPPLE_MS = 900;
+
+    const target = { x: -400, y: -400 };
+    const pos = { x: -400, y: -400 };
+    const pts = Array.from({ length: TRAIL_N }, () => ({ x: -400, y: -400 }));
+    const trailArr = new Float32Array(TRAIL_N * 2);
+    const ripples: { x: number; y: number; t0: number }[] = [
+      { x: 0, y: 0, t0: -1e9 },
+      { x: 0, y: 0, t0: -1e9 },
+      { x: 0, y: 0, t0: -1e9 },
+      { x: 0, y: 0, t0: -1e9 },
+    ];
+    const rippleArr = new Float32Array(12);
+
+    let visible = false;
+    let hoverTarget = 0;
+    let hover = 0;
+    let vel = 0;
+    let color = { r: 255, g: 255, b: 255 };
+    let colorTarget = { r: 255, g: 255, b: 255 };
+    let lastRipple = 0;
+    let w = 0;
+    let h = 0;
+
+    function emitRipple(x: number, y: number, now: number) {
+      if (now - lastRipple < 300) return;
+      lastRipple = now;
+      let slot = ripples[0];
+      for (const r of ripples) {
+        if (now - r.t0 > RIPPLE_MS) {
+          slot = r;
+          break;
+        }
+        if (r.t0 < slot.t0) slot = r;
+      }
+      slot.x = x;
+      slot.y = y;
+      slot.t0 = now;
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      target.x = e.clientX;
+      target.y = e.clientY;
+      if (!visible) {
+        visible = true;
+        pos.x = target.x;
+        pos.y = target.y;
+        for (const p of pts) {
+          p.x = target.x;
+          p.y = target.y;
+        }
+        canvas.style.opacity = '1';
+      }
+    };
+    const onSection = (e: Event) => {
+      colorTarget = hexToRgb((e as CustomEvent).detail as string);
+    };
+    const onOver = (e: Event) => {
+      const el = e.target as Element | null;
+      const next = el?.closest?.(HOVER_SEL) ? 1 : 0;
+      if (next !== hoverTarget) {
+        hoverTarget = next;
+        emitRipple(pos.x, pos.y, performance.now());
+      }
+    };
+    const onLeaveDoc = () => {
+      visible = false;
+      canvas.style.opacity = '0';
+    };
+    const onResize = () => {
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      if (gl && !gl.isContextLost()) gl.viewport(0, 0, canvas.width, canvas.height);
+    };
+
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    window.addEventListener('viajero:section', onSection);
+    document.addEventListener('mouseover', onOver);
+    document.addEventListener('mouseleave', onLeaveDoc);
+    window.addEventListener('resize', onResize);
+
+    w = window.innerWidth;
+    h = window.innerHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    canvas.style.opacity = '0';
+
+    const gl = canvas.getContext('webgl', {
+      alpha: true,
+      premultipliedAlpha: true,
+    }) as WebGLRenderingContext | null;
+
+    let teardown: () => void = () => {};
+    let raf = 0;
+    let last = performance.now();
+    let time = 0;
+
+    function step(now: number) {
+      const dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      time += dt;
+
+      pos.x += (target.x - pos.x) * 0.25;
+      pos.y += (target.y - pos.y) * 0.25;
+
+      pts[0].x = pos.x;
+      pts[0].y = pos.y;
+      for (let i = 1; i < TRAIL_N; i++) {
+        const f = 0.3 - ((i - 1) * 0.18) / (TRAIL_N - 2);
+        pts[i].x += (pts[i - 1].x - pts[i].x) * f;
+        pts[i].y += (pts[i - 1].y - pts[i].y) * f;
+      }
+
+      const px0 = pts[0].x;
+      const py0 = pts[0].y;
+      let sp = 0;
+      for (let i = 0; i < TRAIL_N; i++) {
+        trailArr[i * 2] = pts[i].x;
+        trailArr[i * 2 + 1] = pts[i].y;
+      }
+      const dx = pts[1].x - px0;
+      const dy = pts[1].y - py0;
+      sp = Math.min(Math.hypot(dx, dy) / 60, 1);
+      vel += (sp - vel) * 0.12;
+      if (sp > 0.55) emitRipple(px0, py0, now);
+
+      hover += (hoverTarget - hover) * 0.15;
+      color.r += (colorTarget.r - color.r) * 0.08;
+      color.g += (colorTarget.g - color.g) * 0.08;
+      color.b += (colorTarget.b - color.b) * 0.08;
+    }
+
+    function start2D() {
+      let el = canvas as HTMLCanvasElement;
+      if (gl) {
+        const fresh = document.createElement('canvas');
+        for (const attr of Array.from(el.attributes)) {
+          fresh.setAttribute(attr.name, attr.value);
+        }
+        el.replaceWith(fresh);
+        el = fresh;
+        canvas = fresh;
+        el.width = Math.round(w * dpr);
+        el.height = Math.round(h * dpr);
+        el.style.width = `${w}px`;
+        el.style.height = `${h}px`;
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      }
+      const ctx = el.getContext('2d')!;
+      const loop2d = (now: number) => {
+        step(now);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+
+        const cr = Math.round(color.r);
+        const cg = Math.round(color.g);
+        const cb = Math.round(color.b);
+
+        for (let i = TRAIL_N - 1; i >= 0; i--) {
+          const r = (i === 0 ? 10 : 10 * (1 - (i / TRAIL_N) * 0.75)) *
+            (i === 0 ? 1 + hover * 0.28 : 1);
+          ctx.beginPath();
+          ctx.arc(pts[i].x, pts[i].y, r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${cr},${cg},${cb},${i === 0 ? 0.9 : 0.5})`;
+          ctx.fill();
+        }
+
+        for (let k = 0; k < 3; k++) {
+          const rr = 10 * (0.45 + k * 0.3);
+          ctx.beginPath();
+          ctx.arc(pts[0].x, pts[0].y, rr + (time * 24 + k * 10) % 30, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${cr},${cg},${cb},0.35)`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+
+        for (const rp of ripples) {
+          const age = (now - rp.t0) / RIPPLE_MS;
+          if (age < 0 || age > 1) continue;
+          ctx.beginPath();
+          ctx.arc(rp.x, rp.y, age * 150, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${cr},${cg},${cb},${(1 - age) * 0.5})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        raf = requestAnimationFrame(loop2d);
+      };
+      raf = requestAnimationFrame(loop2d);
+
+      teardown = () => {
+        cancelAnimationFrame(raf);
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('viajero:section', onSection);
+        document.removeEventListener('mouseover', onOver);
+        document.removeEventListener('mouseleave', onLeaveDoc);
+        window.removeEventListener('resize', onResize);
+      };
+    }
+
+    if (!gl) {
+      start2D();
+    } else {
+      const vertexSrc = `
+        attribute vec2 aPos;
+        varying vec2 vUv;
+        void main() {
+          vUv = aPos * 0.5 + 0.5;
+          gl_Position = vec4(aPos, 0.0, 1.0);
+        }
+      `;
+      const fragmentSrc = `
+        precision highp float;
+        uniform float uTime;
+        uniform float uHover;
+        uniform float uVel;
+        uniform vec2 uRes;
+        uniform vec3 uColor;
+        uniform vec2 uTrail[9];
+        uniform vec3 uRipples[4];
+        varying vec2 vUv;
+
+        float smin(float a, float b, float k) {
+          float hh = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+          return mix(b, a, hh) - k * hh * (1.0 - hh);
+        }
+
+        float gridMask(vec2 p) {
+          vec2 f = abs(fract(p / 7.0) - 0.5) * 7.0;
+          float lx = 1.0 - smoothstep(0.35, 1.1, f.x);
+          float ly = 1.0 - smoothstep(0.35, 1.1, f.y);
+          return max(lx, ly);
+        }
+
+        void main() {
+          vec2 frag = vec2(vUv.x * uRes.x, (1.0 - vUv.y) * uRes.y);
+          float scale = uRes.y * 0.5;
+          vec2 uv = ((frag - 0.5 * uRes) / scale);
+
+          float R = 0.034 * (1.0 + uHover * 0.28);
+          vec2 head = ((uTrail[0] - 0.5 * uRes) / scale);
+
+          float dmin = 1e5;
+          for (int i = 0; i < 9; i++) {
+            vec2 tp = ((uTrail[i] - 0.5 * uRes) / scale);
+            float ri = R * (1.0 - float(i) * 0.075);
+            float di = length(uv - tp) - ri;
+            dmin = smin(dmin, di, 0.02);
+          }
+
+          float soft = 0.006;
+          float aR = smoothstep(soft, -soft, dmin - 0.002);
+          float aG = smoothstep(soft, -soft, dmin);
+          float aB = smoothstep(soft, -soft, dmin + 0.002);
+          float body = (aR + aG + aB) / 3.0;
+
+          float dpx = max(dmin, 0.0) * scale;
+          float dH = length(uv - head) * scale;
+
+          float amp = 1.0 + uHover * 0.8;
+          float wave = sin(dH * 0.3 - uTime * 3.5) * exp(-dH * 0.018) * amp;
+          vec2 base = (uv - head) * scale;
+          vec2 rad = normalize(base + vec2(1e-4));
+          vec2 pG = base - rad * (wave * 14.0);
+          float gG = gridMask(pG);
+          float gR = gridMask(pG + rad * (2.5 + abs(wave) * 3.0));
+          float gB = gridMask(pG - rad * (2.5 + abs(wave) * 3.0));
+          float lines = max(max(gR, gG), gB) * aG;
+
+          float rim = exp(-dpx * 0.3) * aG;
+          float glow = exp(-dpx * 0.05) * 0.1;
+
+          float alpha = body * 0.88 + rim * 0.5 + lines * 0.3 + glow;
+          alpha += uVel * exp(-dpx * 0.04) * 0.06;
+
+          for (int i = 0; i < 4; i++) {
+            float age = uRipples[i].z;
+            if (age >= 0.0 && age <= 1.0) {
+              vec2 rc = ((uRipples[i].xy - 0.5 * uRes) / scale);
+              float dr = length(uv - rc) * scale;
+              float rr = age * 150.0;
+              float band = exp(-abs(dr - rr) * 0.12);
+              alpha += band * (1.0 - age) * (1.0 - age) * 0.5;
+            }
+          }
+
+          vec3 col = uColor;
+          vec3 gridCol = mix(uColor, vec3(1.0), 0.75);
+          col = mix(col, gridCol, gG * aG);
+          col += vec3(gR - gG, 0.0, gB - gG) * 0.45 * aG;
+          col = mix(col, vec3(1.0), rim * 0.55);
+          float chroma = (aR - aB) * (0.4 + rim);
+          col += vec3(chroma * 0.9, 0.0, -chroma * 0.9);
+
+          alpha = clamp(alpha, 0.0, 1.0);
+          gl_FragColor = vec4(col * alpha, alpha);
+        }
+      `;
+
+      function compile(type: number, src: string) {
+        const sh = gl!.createShader(type)!;
+        gl!.shaderSource(sh, src);
+        gl!.compileShader(sh);
+        if (!gl!.getShaderParameter(sh, gl!.COMPILE_STATUS)) {
+          console.error(gl!.getShaderInfoLog(sh));
+        }
+        return sh;
+      }
+
+      const prog = gl.createProgram()!;
+      gl.attachShader(prog, compile(gl.VERTEX_SHADER, vertexSrc));
+      gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fragmentSrc));
+      gl.linkProgram(prog);
+
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        console.error(
+          '[cursor-gota] program link falló:',
+          gl.getProgramInfoLog(prog),
+        );
+        start2D();
+      } else {
+      gl.useProgram(prog);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 3, -1, -1, 3]),
+        gl.STATIC_DRAW,
+      );
+      const aPos = gl.getAttribLocation(prog, 'aPos');
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      const uTime = gl.getUniformLocation(prog, 'uTime');
+      const uHover = gl.getUniformLocation(prog, 'uHover');
+      const uVel = gl.getUniformLocation(prog, 'uVel');
+      const uRes = gl.getUniformLocation(prog, 'uRes');
+      const uColor = gl.getUniformLocation(prog, 'uColor');
+      const uTrail = gl.getUniformLocation(prog, 'uTrail[0]');
+      const uRipples = gl.getUniformLocation(prog, 'uRipples[0]');
+
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+      gl.clearColor(0, 0, 0, 0);
+
+      const loop = (now: number) => {
+        step(now);
+
+        for (let i = 0; i < 4; i++) {
+          const age = (now - ripples[i].t0) / RIPPLE_MS;
+          rippleArr[i * 3] = ripples[i].x;
+          rippleArr[i * 3 + 1] = ripples[i].y;
+          rippleArr[i * 3 + 2] = age >= 0 && age <= 1 ? age : -1;
+        }
+
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform1f(uTime, time);
+        gl.uniform1f(uHover, hover);
+        gl.uniform1f(uVel, vel);
+        gl.uniform2f(uRes, w, h);
+        gl.uniform3f(uColor, color.r / 255, color.g / 255, color.b / 255);
+        gl.uniform2fv(uTrail, trailArr);
+        gl.uniform3fv(uRipples, rippleArr);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+        raf = requestAnimationFrame(loop);
+      };
+      raf = requestAnimationFrame(loop);
+
+      teardown = () => {
+        cancelAnimationFrame(raf);
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('viajero:section', onSection);
+        document.removeEventListener('mouseover', onOver);
+        document.removeEventListener('mouseleave', onLeaveDoc);
+        window.removeEventListener('resize', onResize);
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      };
+      }
+    }
+
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        teardown();
+      },
+      { once: true },
+    );
+  } else {
+    canvas?.remove();
+  }
+</script>
+
+<style>
+  #cursor-gota {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    #cursor-gota {
+      display: none !important;
+    }
+  }
+</style>

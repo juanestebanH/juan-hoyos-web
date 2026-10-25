@@ -1,5 +1,7 @@
 export const es = {
   hero_subtitle: 'Desarrollador Full Stack',
+  hero_badge: 'Disponible para trabajar',
+  hero_scroll: 'Desplázate',
   hero_description:
     'Apasionado por crear experiencias digitales increíbles y soluciones innovadoras',
   hero_btn_linkedin: 'LinkedIn',
@@ -7,11 +9,18 @@ export const es = {
   tecnologias_title: 'Tecnologías',
   tecnologias_description:
     'Siempre aprendiendo nuevas tecnologías y expandiendo mi stack para crear mejores soluciones',
+  tecnologias_cats: {
+    all: 'Todos',
+    frontend: 'Frontend',
+    backend: 'Backend',
+    tools: 'Herramientas',
+  },
   proyectos_title: 'Proyectos',
+  proyectos_cta: 'Ver caso',
+  proyectos_cerrar: 'Cerrar',
   experiencia_title: 'Experiencia',
   about: {
     title: 'Sobre mí',
-    subtitle: 'Full Stack Developer',
     paragraphs: [
       '¡Hola! Soy Juan Esteban Hoyos de Colombia. Estudié Análisis y Desarrollo de Software y me apasiona todo lo relacionado con la tecnología.',
       'Me encanta aprender cosas nuevas y trabajar con herramientas como React, Node.js, MySQL, TailwindCSS, Python y JavaScript.',
@@ -48,5 +57,12 @@ export const es = {
     sena: 'Tecnólogo en análisis y desarrollo de software, enfocado en la creación de aplicaciones web y móviles.',
     cafioccidente:
       'Desarrollo de soluciones tecnológicas para la automatización y gestión eficiente de procesos internos.',
+    freelance:
+      'Diseño y desarrollo de sitios y aplicaciones web a medida para clientes, desde la idea hasta el despliegue.',
+  },
+  experiences_type: {
+    educacion: 'Educación',
+    work: 'Trabajo',
+    presente: 'Actualidad',
   },
 };

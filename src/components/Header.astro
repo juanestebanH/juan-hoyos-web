@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
+import AudioPlayer from './AudioPlayer.astro';
 
 const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
 const switchPath = lang === 'es' ? '/en' : '/';
@@ -8,18 +9,18 @@ const items =
   lang === 'es'
     ? [
         { nombre: 'Inicio', href: '#inicio' },
-        { nombre: 'Sobre mí', href: '#sobre-mi' },
         { nombre: 'Tecnologías', href: '#tecnologias' },
         { nombre: 'Proyectos', href: '#proyectos' },
         { nombre: 'Experiencia', href: '#experiencia' },
+        { nombre: 'Sobre mí', href: '#sobre-mi' },
         { nombre: 'Contacto', href: '#contacto' },
       ]
     : [
         { nombre: 'Home', href: '#inicio' },
-        { nombre: 'About', href: '#sobre-mi' },
         { nombre: 'Technologies', href: '#tecnologias' },
         { nombre: 'Projects', href: '#proyectos' },
         { nombre: 'Experience', href: '#experiencia' },
+        { nombre: 'About', href: '#sobre-mi' },
         { nombre: 'Contact', href: '#contacto' },
       ];
 ---
@@ -30,13 +31,17 @@ const items =
 >
   <div class="max-w-7xl mx-auto px-6 py-5" id="nav-container">
     <div class="flex items-center justify-between">
-      <a
-        href="#inicio"
-        id="nav-logo"
-        class="text-secondary z-50 font-bold text-2xl tracking-tighter"
-      >
-        JH<span class="text-primary">.</span>
-      </a>
+      <div class="flex items-center gap-3">
+        <a
+          href="#inicio"
+          id="nav-logo"
+          class="text-secondary z-50 font-bold text-2xl tracking-tighter"
+        >
+          JH<span id="logo-dot" class="text-blanco">.</span>
+        </a>
+
+        <span id="nav-meta" aria-hidden="true">SCRL <span id="nav-pct">000</span>%</span>
+      </div>
 
       <div class="hidden md:flex items-center gap-1">
         {
@@ -55,17 +60,25 @@ const items =
         <a
           id="idioma"
           href={switchPath}
-          class="ml-4 px-3 py-1 text-sm font-medium border border-borde text-gris-claro hover:text-primary hover:border-primary transition-colors rounded-full"
+          class="ml-4 px-3 py-1 text-sm font-medium border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
         >
           {lang === 'es' ? 'EN' : 'ES'}
         </a>
 
         <button
           id="theme-toggle"
-          class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-primary hover:border-primary transition-colors rounded-full"
+          class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
           aria-label="Cambiar tema"
         >
           <span id="theme-icon">☀</span>
+        </button>
+
+        <button
+          id="music-toggle"
+          class="music-btn ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
+          aria-label="Música"
+        >
+          <span id="music-icon">♪</span>
         </button>
       </div>
 
@@ -87,32 +100,42 @@ const items =
 <!-- Menú móvil -->
 <div
   id="mobileMenu"
-  class="fixed inset-0 bg-black/95 backdrop-blur-xl z-40 hidden md:hidden"
+  class="fixed inset-0 backdrop-blur-xl z-40 hidden md:hidden"
 >
   <div class="flex flex-col items-center justify-center h-full gap-6 px-6">
     {
       items.map((item) => (
         <a
           href={item.href}
-          class="mobile-link text-3xl font-bold text-gris-claro hover:text-primary transition-colors"
+          class="mobile-link text-3xl font-bold text-gris-claro hover:text-blanco transition-colors"
         >
           {item.nombre}
         </a>
       ))
     }
-    <a href={switchPath} class="mt-4 text-xl font-bold text-primary">
+    <a href={switchPath} class="mt-4 text-xl font-bold text-blanco">
       {lang === 'es' ? 'English' : 'Español'}
     </a>
 
     <button
       id="theme-toggle-mobile"
-      class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-primary hover:border-primary transition-colors rounded-full"
+      class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
       aria-label="Cambiar tema"
     >
       <span id="theme-icon-mobile">☀</span>
     </button>
+
+    <button
+      id="music-toggle-mobile"
+      class="music-btn-mobile ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
+      aria-label="Música"
+    >
+      <span id="music-icon-mobile">♪</span>
+    </button>
   </div>
 </div>
+
+<AudioPlayer />
 
 <script>
   import gsap from 'gsap';
@@ -127,6 +150,78 @@ const items =
     const lineas = document.querySelectorAll('.linea');
 
     let isMenuOpen = false;
+
+    // ── Sección activa (mismo sistema de color que viajero/cursor) ──
+    const SECTION_COLORS: Record<string, string> = {
+      inicio: '#ffffff',
+      tecnologias: '#7b6ef5',
+      proyectos: '#5dcaa5',
+      experiencia: '#ef9f27',
+      'sobre-mi': '#ff8a6b',
+      contacto: '#4dc9e6',
+    };
+    let projectAccent: string | null = null;
+    window.addEventListener('project:accent', (e) => {
+      projectAccent = (e as CustomEvent<string>).detail;
+      applyActive();
+    });
+
+    function sectionColor(id: string): string {
+      let hex = SECTION_COLORS[id] ?? SECTION_COLORS.inicio;
+      if (id === 'proyectos' && projectAccent) hex = projectAccent;
+      const light = document.documentElement.classList.contains('light');
+      return light && hex.toLowerCase() === '#ffffff' ? '#1a1a1a' : hex;
+    }
+
+    function applyActive() {
+      let activeId = 'inicio';
+      for (const id of Object.keys(SECTION_COLORS)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (
+          r.top <= window.innerHeight * 0.5 &&
+          r.bottom >= window.innerHeight * 0.5
+        ) {
+          activeId = id;
+          break;
+        }
+      }
+      const color = sectionColor(activeId);
+      navLinks.forEach((link) => {
+        const on = link.getAttribute('href') === `#${activeId}`;
+        link.classList.toggle('is-active', on);
+        if (on) link.style.setProperty('--section-color', color);
+        else link.style.removeProperty('--section-color');
+      });
+      mobileLinks.forEach((link) => {
+        const on = link.getAttribute('href') === `#${activeId}`;
+        link.classList.toggle('is-active', on);
+        if (on) link.style.setProperty('--section-color', color);
+        else link.style.removeProperty('--section-color');
+      });
+      const dot = document.getElementById('logo-dot');
+      if (dot) dot.style.color = color;
+      const pct = document.getElementById('nav-pct');
+      if (pct) {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const p = max > 0 ? Math.round((window.scrollY / max) * 100) : 0;
+        pct.textContent = String(Math.min(100, Math.max(0, p))).padStart(3, '0');
+        pct.style.color = color;
+      }
+    }
+
+    let sectionTicking = false;
+    const onSectionScroll = () => {
+      if (sectionTicking) return;
+      sectionTicking = true;
+      requestAnimationFrame(() => {
+        applyActive();
+        sectionTicking = false;
+      });
+    };
+    window.addEventListener('scroll', onSectionScroll, { passive: true });
+    applyActive();
 
     const initLoad = () => {
       const tl = gsap.timeline();
@@ -187,31 +282,20 @@ const items =
     });
 
     window.addEventListener('scroll', () => {
-      if (window.scrollY > 50) {
-        gsap.to(nav, {
-          backgroundColor: 'rgba(0,0,0,0.1)',
-          backdropFilter: 'blur(12px)',
-          borderBottomColor: 'rgba(255,255,255,0.1)',
-          duration: 0.4,
-        });
-        gsap.to(navContainer, { py: 3, duration: 0.4 });
-      } else {
-        gsap.to(nav, {
-          backgroundColor: 'transparent',
-          backdropFilter: 'blur(0px)',
-          borderBottomColor: 'transparent',
-          duration: 0.4,
-        });
-        gsap.to(navContainer, { py: 5, duration: 0.4 });
-      }
+      const scrolled = window.scrollY > 50;
+      if (nav) nav.classList.toggle('is-scrolled', scrolled);
+      gsap.to(navContainer, {
+        paddingTop: scrolled ? '0.75rem' : '1.25rem',
+        paddingBottom: scrolled ? '0.75rem' : '1.25rem',
+        duration: 0.4,
+        overwrite: 'auto',
+      });
     });
 
     navLinks.forEach((link) => {
       link.addEventListener('mouseenter', () => {
-        const isLight = document.documentElement.classList.contains('light');
         gsap.to(link, {
           backgroundColor: 'rgba(74,85,104,0.1)',
-          color: isLight ? 'var(--color-primary)' : '#ffffff',
           y: -2,
           duration: 0.3,
         });
@@ -219,7 +303,6 @@ const items =
       link.addEventListener('mouseleave', () => {
         gsap.to(link, {
           backgroundColor: 'transparent',
-          color: 'var(--color-gris-claro)',
           y: 0,
           duration: 0.3,
         });
@@ -237,10 +320,29 @@ const items =
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
       if (themeIcon) themeIcon.textContent = isLight ? '☾' : '☀';
       if (themeIconMobile) themeIconMobile.textContent = isLight ? '☾' : '☀';
+      applyActive();
     }
 
     themeBtn?.addEventListener('click', toggleTheme);
     themeBtnMobile?.addEventListener('click', toggleTheme);
+
+    // Pills magnéticos (mismo lenguaje que el botón de Contacto)
+    if (window.matchMedia('(pointer: fine)').matches) {
+      [themeBtn, document.getElementById('idioma')].forEach((el) => {
+        if (!el) return;
+        const mx = gsap.quickTo(el, 'x', { duration: 0.4, ease: 'power3.out' });
+        const my = gsap.quickTo(el, 'y', { duration: 0.4, ease: 'power3.out' });
+        el.addEventListener('pointermove', (e) => {
+          const r = el.getBoundingClientRect();
+          mx((e.clientX - r.left - r.width / 2) * 0.2);
+          my((e.clientY - r.top - r.height / 2) * 0.2);
+        });
+        el.addEventListener('pointerleave', () => {
+          mx(0);
+          my(0);
+        });
+      });
+    }
 
     initLoad();
   }
@@ -272,9 +374,51 @@ const items =
   /* Prevenir saltos visuales antes de que cargue GSAP */
   #mobileMenu {
     opacity: 0;
+    background-color: color-mix(in srgb, var(--color-neutro) 95%, transparent);
+  }
+
+  #navbar.is-scrolled {
+    background-color: color-mix(in srgb, var(--color-blanco) 6%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--color-blanco) 10%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .nav-link {
     transition: color 0.3s ease;
+  }
+
+  .nav-link:hover:not(.is-active) {
+    color: var(--color-blanco);
+  }
+
+  .nav-link.is-active,
+  .mobile-link.is-active {
+    color: var(--section-color);
+  }
+
+  .nav-link.is-active::before {
+    content: '•';
+    margin-right: 5px;
+    color: var(--section-color);
+  }
+
+  #nav-meta {
+    display: none;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  #nav-pct {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 1024px) {
+    #nav-meta {
+      display: inline;
+    }
   }
 </style>

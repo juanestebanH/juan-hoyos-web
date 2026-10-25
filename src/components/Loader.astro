@@ -1,0 +1,469 @@
+---
+// Pantalla de carga "Firma técnica". Un plano blueprint (canvas 2D) se traza
+// solo revelando JUAN HOYOS con cabezal y cotas; al pulsar ENTRAR el plano se
+// rompe en teselas que caen, revelando el sitio. El audio se reproduce directo.
+---
+
+<div id="loader" class="loader" role="dialog" aria-modal="true" aria-label="Cargando el portafolio">
+  <canvas id="loader-canvas" class="loader-canvas" aria-hidden="true"></canvas>
+  <span class="loader-name-fallback" aria-hidden="true">JUAN HOYOS</span>
+
+  <div class="loader-ui">
+    <span class="loader-tag loader-tag--tl">JH // SYSTEM</span>
+    <span class="loader-tag loader-tag--tr">REF JH-2026</span>
+    <span class="loader-tag loader-tag--bl">GRID 16 / 80</span>
+    <span class="loader-tag loader-tag--br">SCALE 1:1</span>
+
+    <div class="loader-readout">
+      <div class="loader-line">
+        <span class="loader-label" id="loader-label">TRAZANDO</span>
+        <span class="loader-pct" id="loader-pct">000%</span>
+      </div>
+      <div class="loader-bar"><span id="loader-bar-fill"></span></div>
+    </div>
+
+    <button id="loader-enter" class="loader-enter" type="button" hidden>Entrar</button>
+    <span class="loader-music" id="loader-music"></span>
+    <span class="loader-hint" id="loader-hint">PREPARANDO EL PLANO</span>
+  </div>
+</div>
+
+<style>
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: #000;
+    color: #e7e5e4;
+    overflow: hidden;
+    transition: opacity 0.45s ease;
+  }
+
+  .loader--hide {
+    opacity: 0;
+  }
+
+  .loader-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .loader-name-fallback {
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translate(-50%, -50%);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 700;
+    font-size: clamp(2rem, 11vw, 7rem);
+    letter-spacing: 0.06em;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .loader--reduce .loader-canvas {
+    display: none;
+  }
+  .loader--reduce .loader-name-fallback {
+    display: block;
+  }
+
+  .loader-ui {
+    position: absolute;
+    inset: 0;
+    transition: opacity 0.22s ease;
+  }
+
+  .loader--enter .loader-ui {
+    opacity: 0;
+  }
+
+  .loader-tag {
+    position: absolute;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(231, 229, 228, 0.45);
+  }
+
+  .loader-tag--tl {
+    top: 20px;
+    left: 22px;
+  }
+  .loader-tag--tr {
+    top: 20px;
+    right: 22px;
+  }
+  .loader-tag--bl {
+    bottom: 20px;
+    left: 22px;
+  }
+  .loader-tag--br {
+    bottom: 20px;
+    right: 22px;
+  }
+
+  .loader-readout {
+    position: absolute;
+    left: 50%;
+    top: 8%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: min(64vw, 300px);
+  }
+
+  .loader-line {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .loader-label {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(231, 229, 228, 0.6);
+  }
+
+  .loader-pct {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+  }
+
+  .loader-bar {
+    position: relative;
+    width: 100%;
+    height: 1px;
+    background: rgba(231, 229, 228, 0.18);
+    overflow: hidden;
+  }
+
+  .loader-bar span {
+    position: absolute;
+    inset: 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: #fff;
+  }
+
+  .loader-enter {
+    pointer-events: auto;
+    position: absolute;
+    left: 50%;
+    bottom: 24%;
+    transform: translate(-50%, 6px);
+    padding: 10px 26px;
+    border: 1px solid rgba(231, 229, 228, 0.4);
+    background: transparent;
+    color: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease,
+      background 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease;
+    animation: loaderPulse 2.4s ease-in-out infinite;
+  }
+
+  .loader-enter[hidden] {
+    display: none;
+  }
+
+  .loader-enter.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .loader-enter:hover {
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+  }
+
+  .loader-enter:focus-visible {
+    outline: 1px dashed rgba(231, 229, 228, 0.7);
+    outline-offset: 4px;
+  }
+
+  .loader-music {
+    position: absolute;
+    left: 50%;
+    bottom: 17%;
+    transform: translateX(-50%);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(231, 229, 228, 0.4);
+    white-space: nowrap;
+  }
+
+  .loader-music.is-on {
+    color: #fff;
+  }
+
+  .loader-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 12%;
+    transform: translateX(-50%);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(231, 229, 228, 0.5);
+    white-space: nowrap;
+  }
+
+  .loader--enter {
+    pointer-events: none;
+  }
+
+  @keyframes loaderPulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    }
+    50% {
+      box-shadow: 0 0 22px rgba(255, 255, 255, 0.18);
+    }
+  }
+
+  @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .loader-enter,
+    .loader {
+      cursor: auto;
+    }
+    .loader-enter {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { buildEnvelope, getAudioEl, getLevelAt } from '../util/audio';
+  import type { BlueprintLoader } from '../util/blueprintLoader';
+
+  const SEEN_KEY = 'loader:seen';
+
+  const root = document.getElementById('loader') as HTMLElement | null;
+  if (root) initLoader(root);
+
+  function initLoader(root: HTMLElement) {
+    const canvas = document.getElementById('loader-canvas') as HTMLCanvasElement;
+    const labelEl = document.getElementById('loader-label') as HTMLElement;
+    const pctEl = document.getElementById('loader-pct') as HTMLElement;
+    const barEl = document.getElementById('loader-bar-fill') as HTMLElement;
+    const enterBtn = document.getElementById('loader-enter') as HTMLButtonElement;
+    const hintEl = document.getElementById('loader-hint') as HTMLElement;
+    const musicEl = document.getElementById('loader-music') as HTMLElement;
+
+    const finish = () => {
+      try {
+        sessionStorage.setItem(SEEN_KEY, '1');
+      } catch {
+        /* ignora */
+      }
+      root.style.display = 'none';
+      window.dispatchEvent(new CustomEvent('loader:done'));
+    };
+
+    // ── Ya visto en esta sesión: libera el sitio sin escena ──
+    let seen = false;
+    try {
+      seen = sessionStorage.getItem(SEEN_KEY) === '1';
+    } catch {
+      /* ignora */
+    }
+    if (seen) {
+      root.style.display = 'none';
+      requestAnimationFrame(() =>
+        window.dispatchEvent(new CustomEvent('loader:done')),
+      );
+      return;
+    }
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) root.classList.add('loader--reduce');
+
+    // ── Progreso ──
+    const startTime = performance.now();
+    let progress = 0.04;
+    let ceiling = 0.12;
+    let ready = false;
+    let scene: BlueprintLoader | null = null;
+
+    const render = () => {
+      const v = Math.round(progress * 100);
+      pctEl.textContent = `${String(v).padStart(3, '0')}%`;
+      barEl.style.transform = `scaleX(${progress})`;
+      scene?.setProgress(progress);
+      if (progress >= 0.999 && labelEl.textContent === 'TRAZANDO') {
+        labelEl.textContent = 'TRAZADO';
+      }
+    };
+    // Los hitos solo elevan el techo; el avance visible lo marca el drift.
+    const raise = (p: number) => {
+      ceiling = Math.max(ceiling, Math.min(1, p));
+    };
+
+    const drift = window.setInterval(() => {
+      if (ready) return;
+      progress += (ceiling - progress) * 0.085;
+      if (ceiling - progress < 0.004) progress = ceiling;
+      render();
+      maybeRequest();
+    }, 90);
+
+    // ── Escena (canvas 2D) en diferido ──
+    const sceneReady = reduce
+      ? Promise.resolve()
+      : import('../util/blueprintLoader')
+          .then(({ createBlueprintLoader }) => {
+            scene = createBlueprintLoader(canvas);
+            if (scene) scene.setProgress(progress);
+            else root.classList.add('loader--reduce');
+          })
+          .catch(() => root.classList.add('loader--reduce'))
+          .then(() => raise(0.6));
+
+    // ── Indicador de música ──
+    const audio = getAudioEl();
+    if (audio) {
+      audio.addEventListener('playing', () => {
+        musicEl.textContent = '♪ SONOR #2 — SONANDO';
+        musicEl.classList.add('is-on');
+      });
+      audio.addEventListener('pause', () => {
+        musicEl.textContent = '♪ EN PAUSA';
+        musicEl.classList.remove('is-on');
+      });
+    }
+
+    // ── Hitos reales (elevan el techo de progreso) ──
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => raise(0.4));
+    }
+    if (audio) {
+      if (audio.readyState >= 1) raise(0.78);
+      else audio.addEventListener('loadedmetadata', () => raise(0.78), { once: true });
+    }
+    window.addEventListener('load', () => raise(0.92), { once: true });
+
+    let readyRequested = false;
+    const hardCap = window.setTimeout(requestReady, 6000);
+
+    // Trazado mínimo a la vista antes de ofrecer ENTRAR
+    const MIN_DRAW_MS = 3200;
+    function maybeRequest() {
+      if (readyRequested || ready) return;
+      if (
+        progress >= 0.9 &&
+        progress >= ceiling - 0.006 &&
+        performance.now() - startTime >= MIN_DRAW_MS
+      ) {
+        requestReady();
+      }
+    }
+
+    // Cierre suave del trazo hasta el 100% + breve pausa antes de ofrecer ENTRAR
+    function requestReady() {
+      if (readyRequested || ready) return;
+      readyRequested = true;
+      window.clearTimeout(hardCap);
+      window.clearInterval(drift);
+      const from = progress;
+      const t0 = performance.now();
+      const dur = 600;
+      const step = () => {
+        const k = Math.min(1, (performance.now() - t0) / dur);
+        progress = from + (1 - from) * k;
+        render();
+        if (k < 1) requestAnimationFrame(step);
+        else window.setTimeout(markReady, 620);
+      };
+      requestAnimationFrame(step);
+    }
+
+    function markReady() {
+      if (ready) return;
+      ready = true;
+      progress = 1;
+      render();
+      labelEl.textContent = 'LISTO';
+      hintEl.textContent = 'PULSA PARA ENTRAR';
+      enterBtn.hidden = false;
+      requestAnimationFrame(() => enterBtn.classList.add('is-visible'));
+      try {
+        enterBtn.focus({ preventScroll: true });
+      } catch {
+        /* ignora */
+      }
+    }
+
+    // ── Entrada (gate) ──
+    let entering = false;
+    async function enter() {
+      if (!ready || entering) return;
+      entering = true;
+      enterBtn.blur();
+
+      // El gate es intención explícita: encender siempre la música.
+      window.dispatchEvent(new CustomEvent('music:enter'));
+      buildEnvelope(); // decodifica el track en segundo plano (no bloquea)
+
+      labelEl.textContent = 'ENTRANDO';
+      hintEl.textContent = '';
+      root.classList.add('loader--enter');
+
+      const levelAt = () => getLevelAt(getAudioEl()?.currentTime ?? 0);
+
+      if (scene) {
+        await scene.reveal(levelAt);
+      } else {
+        await new Promise((r) => window.setTimeout(r, 420));
+      }
+
+      root.classList.add('loader--hide');
+      await new Promise((r) => window.setTimeout(r, 700));
+      scene?.destroy();
+      finish();
+    }
+
+    enterBtn.addEventListener('click', enter);
+    root.addEventListener('click', (e) => {
+      if (!ready) return;
+      const t = e.target as Node;
+      if (t === enterBtn || enterBtn.contains(t)) return;
+      enter();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (!ready) return;
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        e.preventDefault();
+        enter();
+      }
+    });
+
+    render();
+  }
+</script>

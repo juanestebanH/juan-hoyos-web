@@ -1,0 +1,198 @@
+---
+---
+
+<audio id="bg-audio" src="/mixkit-sonor-2-570.mp3" loop preload="none"></audio>
+
+<style>
+  :global(.music-btn),
+  :global(.music-btn-mobile) {
+    position: relative;
+    overflow: visible;
+  }
+  :global(.music-btn.is-on),
+  :global(.music-btn-mobile.is-on) {
+    color: var(--color-blanco);
+    border-color: var(--color-blanco);
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+  import { playDirect } from '../util/audio';
+
+  function initMusic() {
+    const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
+    const btnDesktop = document.getElementById('music-toggle');
+    const btnMobile = document.getElementById('music-toggle-mobile');
+    if (!audio || !btnDesktop || !btnMobile) return;
+
+    // Evita doble init (llamada directa + astro:page-load)
+    if (audio.dataset.musicReady === '1') return;
+    audio.dataset.musicReady = '1';
+
+    const TARGET = 0.35;
+    const GESTURES = [
+      'pointerdown',
+      'pointerup',
+      'mousedown',
+      'click',
+      'touchstart',
+      'touchend',
+      'keydown',
+      'wheel',
+      'scroll',
+    ];
+    let warmed = false;
+    let unlocked = false;
+
+    audio.volume = 0;
+
+    // ── UI refleja el estado real del <audio> ──
+    const isAudible = () => !audio.paused && !audio.muted;
+    let uiOn = false;
+    const syncUI = () => {
+      const on = isAudible();
+      if (on === uiOn) return;
+      uiOn = on;
+      btnDesktop.classList.toggle('is-on', on);
+      btnMobile.classList.toggle('is-on', on);
+    };
+    ['play', 'pause', 'playing', 'volumechange'].forEach((ev) =>
+      audio.addEventListener(ev, syncUI),
+    );
+
+    // ── Precarga en idle (arranque instantáneo) ──
+    const conn = (navigator as any).connection;
+    const slowNet =
+      conn && (conn.saveData || /(^|-)2g$|(^|-)3g$/.test(conn.effectiveType || ''));
+    if (!slowNet) {
+      const preload = () => {
+        if (!audio.paused) return; // no interrumpir una reproducción en curso
+        audio.preload = 'auto';
+        audio.load();
+      };
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(preload, { timeout: 2500 });
+      } else {
+        setTimeout(preload, 1200);
+      }
+    }
+
+    const fadeIn = () => {
+      audio.muted = false;
+      gsap.to(audio, { volume: TARGET, duration: 0.6, ease: 'power2.inOut' });
+    };
+
+    // Intenta reproducir con sonido (reproducción directa, sin Web Audio).
+    // Resuelve true si arrancó.
+    const resume = async (): Promise<boolean> => {
+      const ok = await playDirect();
+      if (ok) fadeIn();
+      return ok;
+    };
+
+    // Arranque silencioso: lo permite el navegador y quita el buffer del medio.
+    const warmSilently = () => {
+      audio.muted = true;
+      audio.volume = 0;
+      audio
+        .play()
+        .then(() => {
+          warmed = true;
+        })
+        .catch(() => {});
+    };
+
+    const pause = () => {
+      gsap.to(audio, {
+        volume: 0,
+        duration: 0.4,
+        ease: 'power2.inOut',
+        onComplete: () => audio.pause(),
+      });
+    };
+
+    const unlock = () => {
+      if (unlocked) return;
+      unlocked = true;
+      GESTURES.forEach((g) => window.removeEventListener(g, onGesture));
+      localStorage.setItem('music', 'on');
+    };
+
+    const startAudible = () => {
+      if (warmed && !audio.paused) {
+        // ya está corriendo en silencio: solo sube el volumen
+        audio.muted = false;
+        fadeIn();
+        unlock();
+        return;
+      }
+      resume().then((ok) => {
+        if (ok) unlock();
+      });
+    };
+
+    // ── Botón ♪: toggle manual (siempre funciona) ──
+    const toggle = () => {
+      if (isAudible()) {
+        pause();
+        localStorage.setItem('music', 'off');
+      } else {
+        resume().then((ok) => {
+          if (ok) localStorage.setItem('music', 'on');
+        });
+      }
+    };
+    btnDesktop.addEventListener('click', toggle);
+    btnMobile.addEventListener('click', toggle);
+
+    // Bounce hover (mismo lenguaje que social cards)
+    [btnDesktop, btnMobile].forEach((btn) => {
+      btn.addEventListener('mouseenter', () => {
+        gsap.to(btn, { scale: 1.12, duration: 0.3, ease: 'power2.out' });
+      });
+      btn.addEventListener('mouseleave', () => {
+        gsap.to(btn, { scale: 1, duration: 0.3, ease: 'power2.out' });
+      });
+    });
+
+    // El botón ENTRAR del loader enciende y arranca la música (aunque esté en 'off').
+    window.addEventListener('music:enter', () => {
+      localStorage.setItem('music', 'on');
+      startAudible();
+    });
+
+    // ── Auto-arranque ──
+    if (localStorage.getItem('music') === 'off') return;
+
+    // Mientras el loader esté visible, el gate decide (evento music:enter).
+    const loaderVisible = () => {
+      const l = document.getElementById('loader');
+      return !!l && l.style.display !== 'none' && l.getClientRects().length > 0;
+    };
+
+    const onGesture = (e: Event) => {
+      const t = e.target as HTMLElement | null;
+      // Si el gesto es sobre el botón, deja que su propio toggle decida
+      if (t && t.closest && t.closest('#music-toggle, #music-toggle-mobile')) return;
+      if (unlocked) return;
+      if (loaderVisible()) return; // el loader manda mientras esté en pantalla
+      startAudible();
+    };
+
+    GESTURES.forEach((g) =>
+      window.addEventListener(g, onGesture, { passive: true }),
+    );
+
+    // Intento inmediato (funciona en visitas recurrentes); si el navegador lo
+    // bloquea, deja el track en silencio listo para el primer gesto.
+    resume().then((ok) => {
+      if (ok) unlock();
+      else warmSilently();
+    });
+  }
+
+  initMusic();
+  document.addEventListener('astro:page-load', initMusic);
+</script>
+

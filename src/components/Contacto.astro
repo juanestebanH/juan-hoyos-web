@@ -1,5 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
+import SceneIndex from './SceneIndex.astro';
 
 const socialLinks = [
   {
@@ -41,77 +42,25 @@ const {
 >
 </div>
 
-<section id="contacto" class="min-h-screen py-20 px-6 relative">
+<section
+  id="contacto"
+  class="contact-section min-h-screen py-20 px-6 md:px-10 relative overflow-hidden"
+>
+  <div class="contact-aurora" aria-hidden="true"></div>
+  <div class="contact-grid" aria-hidden="true"></div>
+  <SceneIndex index="06" />
+
   <div class="max-w-7xl mx-auto relative z-10">
-    <div class="text-start mb-16">
-      <h2 class="contact-title text-blanco mb-4">{title}</h2>
-    </div>
+    <header class="text-start mb-14">
+      <h2 class="contact-title text-blanco overflow-hidden">{title}</h2>
+      <p class="contact-kicker">{subtitle}</p>
+    </header>
 
-    <div class="grid md:grid-cols-2 gap-8">
-      <div>
-        <div class="bg-negro-claro p-8 shadow-[8px_8px_0_black]">
-          <form id="contact-form" class="space-y-6">
-            <div class="contact-field">
-              <label class="block text-gris-claro mb-2"
-                >{formulario_nombre}</label
-              >
-              <input
-                type="text"
-                name="name"
-                required
-                placeholder="Tu nombre"
-                class="contact-input w-full p-3 border-b-4 border-black text-blanco outline-none"
-              />
-            </div>
+    <div class="grid md:grid-cols-2 gap-10 items-start">
+      <div class="contact-left">
+        <p class="contact-desc text-gris-claro max-w-md">{description}</p>
 
-            <div class="contact-field">
-              <label class="block text-gris-claro mb-2"
-                >{formulario_email}</label
-              >
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder="tu@email.com"
-                class="contact-input w-full p-3 border-b-4 border-black text-blanco outline-none"
-              />
-            </div>
-
-            <div class="contact-field">
-              <label class="block text-gris-claro mb-2"
-                >{formulario_mensaje}</label
-              >
-              <textarea
-                name="message"
-                rows="5"
-                required
-                placeholder="Cuéntame sobre tu proyecto..."
-                class="contact-input w-full p-3 border-b-4 border-black resize-none text-blanco outline-none"
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              class="contact-btn w-full bg-primary text-blanco py-4 border-4 border-black
-                     shadow-[4px_4px_0_black] transition-all duration-200
-                     flex items-center justify-center gap-2 mb-6"
-            >
-              <Icon name="mdi:send" class="w-5 h-5" />
-              {btn_email}
-            </button>
-          </form>
-        </div>
-      </div>
-
-      <div class="contact-right space-y-6 flex flex-col justify-center">
-        <div class="contact-box bg-negro-claro p-8 shadow-[8px_8px_0_black]">
-          <h3 class="text-blanco mb-4">{subtitle}</h3>
-          <p class="text-gris-claro">
-            {description}
-          </p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
+        <div class="contact-socials grid grid-cols-2 gap-4 mt-20">
           {
             socialLinks.map((social) => (
               <a
@@ -120,15 +69,77 @@ const {
                 rel="noopener noreferrer"
                 class="social-card"
               >
-                <div class="bg-negro-claro p-6 shadow-[4px_4px_0_black] transition-all duration-200 flex flex-col items-center justify-center text-center min-h-35">
-                  <div class="social-icon w-14 h-14 mb-3 rounded-lg border-2 border-black flex items-center justify-center bg-primary">
+                <div class="social-inner">
+                  <div class="social-icon">
                     <Icon name={social.icon} class="w-7 h-7 text-blanco" />
                   </div>
-                  <span class="social-text text-secondary">{social.name}</span>
+                  <span class="social-text">{social.name}</span>
                 </div>
               </a>
             ))
           }
+        </div>
+      </div>
+
+      <div class="contact-tilt">
+        <div class="contact-card">
+          <div class="contact-spotlight" aria-hidden="true"></div>
+          <div class="contact-flash" aria-hidden="true"></div>
+
+          <form id="contact-form" class="space-y-4">
+            <div class="contact-field">
+              <input
+                id="cf-name"
+                type="text"
+                name="name"
+                required
+                placeholder=" "
+                autocomplete="name"
+                class="contact-input"
+              />
+              <label for="cf-name" class="contact-label"
+                >{formulario_nombre}</label
+              >
+              <span class="contact-line"></span>
+            </div>
+
+            <div class="contact-field">
+              <input
+                id="cf-email"
+                type="email"
+                name="email"
+                required
+                placeholder=" "
+                autocomplete="email"
+                class="contact-input"
+              />
+              <label for="cf-email" class="contact-label"
+                >{formulario_email}</label
+              >
+              <span class="contact-line"></span>
+            </div>
+
+            <div class="contact-field">
+              <textarea
+                id="cf-message"
+                name="message"
+                rows="5"
+                required
+                placeholder=" "
+                class="contact-input contact-textarea"></textarea>
+              <label for="cf-message" class="contact-label"
+                >{formulario_mensaje}</label
+              >
+              <span class="contact-line"></span>
+            </div>
+
+            <button type="submit" class="contact-btn">
+              <span class="contact-btn-icon">
+                <Icon name="mdi:send" class="w-5 h-5" />
+              </span>
+              <span>{btn_email}</span>
+            </button>
+          </form>
         </div>
       </div>
     </div>
@@ -139,7 +150,7 @@ const {
   import emailjs from '@emailjs/browser';
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { animateSectionTitleScroll } from '../util/animations';
+  import { animateTitleChars } from '../util/animations';
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -169,24 +180,25 @@ const {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: #1a1a1a;
+      background: rgba(20, 20, 20, 0.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       color: #fff;
-      padding: 14px 20px;
-      border: 3px solid black;
-      box-shadow: 4px 4px 0 black;
+      padding: 13px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-left: 3px solid ${colors[type]};
+      border-radius: 12px;
       font-size: 14px;
       font-weight: 500;
       pointer-events: all;
       opacity: 0;
       transform: translateX(60px);
-      border-left: 5px solid ${colors[type]};
       min-width: 260px;
     `;
 
     toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
     container.appendChild(toast);
 
-    // Entrada con GSAP
     gsap.to(toast, {
       opacity: 1,
       x: 0,
@@ -210,94 +222,190 @@ const {
 
   // ── Contacto ──────────────────────────────────────────────
   function initContact() {
-    const form = document.getElementById(
-      'contact-form',
-    ) as HTMLFormElement | null;
-    const contactSection = document.querySelector('#contacto');
+    const section = document.querySelector('#contacto') as HTMLElement | null;
+    const form = document.getElementById('contact-form') as HTMLFormElement | null;
 
-    if (!form) return;
+    if (!section || !form) return;
+    if (section.dataset.inited === 'true') return;
+    section.dataset.inited = 'true';
 
-    animateSectionTitleScroll('.contact-title', '#contacto');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fine = window.matchMedia('(pointer: fine)').matches;
 
-    gsap.fromTo(
-      '.contact-field, .contact-btn',
-      { y: 30, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        stagger: 0.12,
+    const ctx = gsap.context(() => {
+      animateTitleChars('.contact-title');
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top bottom',
+        end: 'bottom top',
+        onToggle: (self) =>
+          section.classList.toggle('is-paused', !self.isActive),
+      });
+
+      if (reduced) return;
+
+      gsap.fromTo(
+        '.contact-kicker',
+        { y: 12, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.6,
+          delay: 0.12,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 85%',
+            toggleActions: 'play none none reset',
+          },
+        },
+      );
+
+      gsap.from('.contact-desc', {
+        y: 24,
+        opacity: 0,
         duration: 0.7,
         ease: 'power3.out',
         scrollTrigger: {
-          trigger: contactSection,
-          start: 'top 80%',
+          trigger: '.contact-left',
+          start: 'top 85%',
           toggleActions: 'play none none reset',
         },
-      },
-    );
-
-    gsap.from('.contact-right', {
-      x: 80,
-      opacity: 0,
-      duration: 1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.contact-right',
-        start: 'top 82%',
-        toggleActions: 'play none none reset',
-      },
-    });
-
-    gsap.from('.social-card', {
-      y: 25,
-      opacity: 0,
-      stagger: 0.15,
-      duration: 0.7,
-      delay: 0.2,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: '.contact-right',
-        start: 'top 82%',
-        toggleActions: 'play none none reset',
-      },
-    });
-
-    const socials = document.querySelectorAll('.social-card');
-
-    socials.forEach((card) => {
-      const icon = card.querySelector('.social-icon');
-      const text = card.querySelector('.social-text');
-      const box = card.firstElementChild;
-
-      card.addEventListener('mouseenter', () => {
-        gsap.to(box, {
-          y: -8,
-          scale: 1.03,
-          boxShadow: '8px 8px 0 black',
-          duration: 0.25,
-          ease: 'power2.out',
-        });
-        gsap.to(icon, { rotate: 8, scale: 1.1, duration: 0.25 });
-        gsap.to(text, { color: '#ffffff', duration: 0.25 });
       });
 
-      card.addEventListener('mouseleave', () => {
-        gsap.to(box, {
-          y: 0,
-          scale: 1,
-          boxShadow: '4px 4px 0 black',
-          duration: 0.25,
+      gsap.from('.contact-tilt', {
+        y: 40,
+        opacity: 0,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.contact-tilt',
+          start: 'top 86%',
+          toggleActions: 'play none none reset',
+        },
+      });
+
+      gsap.from('.contact-field, .contact-btn', {
+        y: 22,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 0.6,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: form,
+          start: 'top 88%',
+          toggleActions: 'play none none reset',
+        },
+      });
+
+      gsap.from('.social-card', {
+        y: 22,
+        opacity: 0,
+        stagger: 0.12,
+        duration: 0.65,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.contact-socials',
+          start: 'top 92%',
+          toggleActions: 'play none none reset',
+        },
+      });
+
+      // Tilt 3D + spotlight de la tarjeta
+      const card = section.querySelector('.contact-card') as HTMLElement | null;
+      if (card && fine) {
+        gsap.set(card, { transformOrigin: 'center' });
+
+        const rx = gsap.quickTo(card, 'rotationX', {
+          duration: 0.5,
           ease: 'power2.out',
         });
-        gsap.to(icon, { rotate: 0, scale: 1, duration: 0.25 });
-        gsap.to(text, { color: '', duration: 0.25 });
-      });
-    });
+        const ry = gsap.quickTo(card, 'rotationY', {
+          duration: 0.5,
+          ease: 'power2.out',
+        });
 
-    form.addEventListener('submit', async (e) => {
+        card.addEventListener('pointermove', (e) => {
+          const r = card.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width - 0.5;
+          const py = (e.clientY - r.top) / r.height - 0.5;
+          rx(-py * 5);
+          ry(px * 7);
+          card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          card.style.setProperty('--my', `${e.clientY - r.top}px`);
+        });
+
+        card.addEventListener('pointerleave', () => {
+          rx(0);
+          ry(0);
+        });
+      }
+
+      if (!fine) return;
+
+      // Botón magnético
+      const btn = form.querySelector('.contact-btn') as HTMLElement | null;
+      if (btn) {
+        const bx = gsap.quickTo(btn, 'x', {
+          duration: 0.4,
+          ease: 'power3.out',
+        });
+        const by = gsap.quickTo(btn, 'y', {
+          duration: 0.4,
+          ease: 'power3.out',
+        });
+
+        btn.addEventListener('pointermove', (e) => {
+          const r = btn.getBoundingClientRect();
+          bx((e.clientX - r.left - r.width / 2) * 0.22);
+          by((e.clientY - r.top - r.height / 2) * 0.35);
+        });
+
+        btn.addEventListener('pointerleave', () => {
+          bx(0);
+          by(0);
+        });
+      }
+
+      // Socials magnéticos
+      section.querySelectorAll<HTMLElement>('.social-card').forEach((card) => {
+        const icon = card.querySelector('.social-icon');
+
+        const sx = gsap.quickTo(card, 'x', {
+          duration: 0.45,
+          ease: 'power3.out',
+        });
+        const sy = gsap.quickTo(card, 'y', {
+          duration: 0.45,
+          ease: 'power3.out',
+        });
+
+        card.addEventListener('pointermove', (e) => {
+          const r = card.getBoundingClientRect();
+          sx((e.clientX - r.left - r.width / 2) * 0.18);
+          sy((e.clientY - r.top - r.height / 2) * 0.28);
+        });
+
+        card.addEventListener('pointerenter', () => {
+          if (!icon) return;
+          gsap.to(icon, { rotate: -8, scale: 1.12, duration: 0.35, ease: 'power2.out' });
+        });
+
+        card.addEventListener('pointerleave', () => {
+          sx(0);
+          sy(0);
+          if (!icon) return;
+          gsap.to(icon, { rotate: 0, scale: 1, duration: 0.4, ease: 'power2.out' });
+        });
+      });
+    }, section);
+
+    const onSubmit = async (e: Event) => {
       e.preventDefault();
       const currentForm = e.currentTarget as HTMLFormElement;
-      const button = currentForm.querySelector('button');
+      const button = currentForm.querySelector<HTMLElement>('.contact-btn');
+      const flash = section.querySelector<HTMLElement>('.contact-flash');
 
       if (button) button.disabled = true;
 
@@ -320,12 +428,28 @@ const {
 
         currentForm.reset();
 
+        if (flash) {
+          gsap.fromTo(
+            flash,
+            { opacity: 0.85 },
+            { opacity: 0, duration: 1, ease: 'power2.out' },
+          );
+        }
+
         if (button) {
+          const icon = button.querySelector('.contact-btn-icon');
           gsap.fromTo(
             button,
             { scale: 1 },
-            { scale: 1.08, yoyo: true, repeat: 1, duration: 0.18 },
+            { scale: 1.06, yoyo: true, repeat: 1, duration: 0.18 },
           );
+          if (icon) {
+            gsap.fromTo(
+              icon,
+              { rotate: 0 },
+              { rotate: 360, duration: 0.7, ease: 'power2.out' },
+            );
+          }
         }
       } catch (error) {
         dismissToast(loadingToast);
@@ -343,26 +467,372 @@ const {
       } finally {
         if (button) button.disabled = false;
       }
-    });
+    };
+
+    form.addEventListener('submit', onSubmit);
+
+    const teardown = () => {
+      form.removeEventListener('submit', onSubmit);
+      ctx.revert();
+      section.dataset.inited = 'false';
+    };
+
+    document.addEventListener('astro:before-swap', teardown, { once: true });
   }
 
   document.addEventListener('astro:page-load', initContact);
   initContact();
-
-  document.addEventListener('astro:before-preparation', () => {
-    ScrollTrigger.getAll().forEach((t) => t.kill());
-  });
 </script>
 
 <style>
-  .contact-input:focus {
-    border-color: #4a5568;
+  #contacto {
+    --contact-accent: var(--color-blanco);
+    --contact-glass: color-mix(in srgb, var(--color-negro-claro) 55%, transparent);
+    --contact-glass-border: color-mix(in srgb, var(--color-borde) 85%, transparent);
   }
 
-  .contact-btn,
-  .contact-field,
-  .social-card,
-  .contact-box {
-    will-change: transform, opacity;
+  .contact-section {
+    isolation: isolate;
+  }
+
+  /* ── Decoración ─────────────────────────────────────── */
+  .contact-aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .contact-aurora::before {
+    content: '';
+    position: absolute;
+    width: 62%;
+    height: 58%;
+    left: 50%;
+    top: 46%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--contact-accent) 26%, transparent) 0%,
+      transparent 70%
+    );
+    filter: blur(58px);
+    animation: contact-breathe 11s ease-in-out infinite;
+  }
+
+  :global(html.light) #contacto .contact-aurora::before {
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--color-blanco) 8%, transparent) 0%,
+      transparent 70%
+    );
+  }
+
+
+  @keyframes contact-breathe {
+    0%,
+    100% {
+      opacity: 0.75;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+  }
+
+  .contact-section.is-paused .contact-aurora::before {
+    animation-play-state: paused;
+  }
+
+  .contact-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-borde) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-borde) 55%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, black, transparent 76%);
+    -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, black, transparent 76%);
+    opacity: 0.55;
+  }
+
+  .contact-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.9rem 0 0;
+    font-size: 1.05rem;
+    letter-spacing: 0.01em;
+    color: var(--contact-accent);
+  }
+
+  .contact-kicker::before {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--contact-accent);
+    animation: contact-pulse 2.4s ease-out infinite;
+  }
+
+  @keyframes contact-pulse {
+    0% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--contact-accent) 55%, transparent);
+    }
+    70% {
+      box-shadow: 0 0 0 12px transparent;
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+
+  .contact-desc {
+    margin: 0;
+  }
+
+  /* ── Tarjeta glass ──────────────────────────────────── */
+  .contact-tilt {
+    perspective: 900px;
+  }
+
+  .contact-card {
+    position: relative;
+    padding: 2.25rem;
+    border-radius: 1.25rem;
+    background: var(--contact-glass);
+    border: 1px solid var(--contact-glass-border);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    transform-style: preserve-3d;
+    overflow: hidden;
+  }
+
+  .contact-spotlight {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      240px circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--contact-accent) 20%, transparent),
+      transparent 70%
+    );
+  }
+
+  .contact-card:hover .contact-spotlight {
+    opacity: 1;
+  }
+
+  .contact-flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--contact-accent) 45%, transparent),
+      transparent 70%
+    );
+  }
+
+  :global(html.light) .contact-flash {
+    background: radial-gradient(
+      circle at 50% 50%,
+      color-mix(in srgb, var(--color-blanco) 16%, transparent),
+      transparent 70%
+    );
+  }
+
+  /* ── Campos con etiqueta flotante ───────────────────── */
+  .contact-field {
+    position: relative;
+  }
+
+  .contact-input {
+    width: 100%;
+    padding: 1.6rem 0 0.7rem;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--color-blanco);
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  .contact-textarea {
+    resize: none;
+    line-height: 1.65;
+  }
+
+  .contact-label {
+    position: absolute;
+    left: 0;
+    top: 1.5rem;
+    line-height: 1;
+    color: var(--color-gris-claro);
+    font-size: 0.95rem;
+    pointer-events: none;
+    transition:
+      top 0.25s ease,
+      font-size 0.25s ease,
+      color 0.25s ease,
+      letter-spacing 0.25s ease;
+  }
+
+  .contact-input:focus + .contact-label,
+  .contact-input:not(:placeholder-shown) + .contact-label {
+    top: 0.25rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--contact-accent);
+  }
+
+  .contact-line {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--contact-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .contact-input:focus ~ .contact-line {
+    transform: scaleX(1);
+  }
+
+  /* ── Botón magnético ────────────────────────────────── */
+  .contact-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--contact-accent) 40%, transparent);
+    background: var(--contact-accent);
+    color: var(--color-negro);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    box-shadow: 0 12px 32px -14px color-mix(in srgb, var(--contact-accent) 75%, transparent);
+    transition:
+      box-shadow 0.3s ease,
+      filter 0.3s ease;
+  }
+
+  .contact-btn:hover {
+    box-shadow: 0 18px 46px -14px color-mix(in srgb, var(--contact-accent) 85%, transparent);
+    filter: brightness(1.08);
+  }
+
+  .contact-btn:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .contact-btn-icon {
+    display: inline-flex;
+  }
+
+  /* ── Socials ────────────────────────────────────────── */
+  .social-card {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .social-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.6rem 1rem;
+    min-height: 8.75rem;
+    border-radius: 1rem;
+    background: var(--contact-glass);
+    border: 1px solid var(--contact-glass-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: border-color 0.35s ease;
+  }
+
+  .social-card:hover .social-inner {
+    border-color: color-mix(in srgb, var(--contact-accent) 55%, transparent);
+  }
+
+  .social-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.85rem;
+    background: color-mix(in srgb, var(--contact-accent) 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--contact-accent) 40%, transparent);
+  }
+
+  .social-text {
+    font-size: 0.95rem;
+    color: var(--color-secondary);
+    transition: color 0.3s ease;
+  }
+
+  .social-card:hover .social-text {
+    color: var(--color-blanco);
+  }
+
+  @media (max-width: 768px) {
+    .contact-card {
+      padding: 1.6rem;
+    }
+
+    .contact-socials {
+      gap: 0.75rem;
+    }
+
+    .social-inner {
+      min-height: 7.25rem;
+      padding: 1.25rem 0.75rem;
+    }
+
+    .social-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact-aurora::before,
+    .contact-kicker::before {
+      animation: none;
+    }
+
+    .contact-label,
+    .contact-line,
+    .social-inner,
+    .social-text {
+      transition: none;
+    }
   }
 </style>
+
