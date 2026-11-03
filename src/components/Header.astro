@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import { chapters } from '../data/chapters';
+import { tracks } from '../data/tracks';
 import AudioPlayer from './AudioPlayer.astro';
 
 const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
@@ -71,6 +72,27 @@ const copy = chapters.map((chapter) => ({
       >
         <span id="theme-icon" aria-hidden="true">☀</span>
       </button>
+
+      <div
+        class="hud__tracks"
+        role="group"
+        aria-label={lang === 'es' ? 'Canciones' : 'Tracks'}
+      >
+        {
+          tracks.map((track, index) => (
+            <button
+              class="hud__tool hud__track"
+              type="button"
+              data-track-index={index}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+              aria-label={`${lang === 'es' ? 'Canción' : 'Track'} ${index + 1}: ${track.title} — ${track.artist}`}
+              title={`${track.title} — ${track.artist}`}
+            >
+              {String(index + 1).padStart(2, '0')}
+            </button>
+          ))
+        }
+      </div>
 
       <button
         id="music-toggle"
@@ -146,6 +168,27 @@ const copy = chapters.map((chapter) => ({
       >
         <span id="music-icon-mobile">♪</span>
       </button>
+
+      <div
+        class="hud-menu__tracks"
+        role="group"
+        aria-label={lang === 'es' ? 'Canciones' : 'Tracks'}
+      >
+        {
+          tracks.map((track, index) => (
+            <button
+              class="hud-menu__tool hud-menu__track"
+              type="button"
+              data-track-index={index}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+              aria-label={`${lang === 'es' ? 'Canción' : 'Track'} ${index + 1}: ${track.title} — ${track.artist}`}
+              title={`${track.title} — ${track.artist}`}
+            >
+              {String(index + 1).padStart(2, '0')}
+            </button>
+          ))
+        }
+      </div>
     </div>
 
     <p class="hud-menu__foot">
@@ -564,6 +607,25 @@ const copy = chapters.map((chapter) => ({
     border-color: color-mix(in srgb, var(--hud-accent) 42%, transparent);
   }
 
+  .hud__tracks {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.18rem;
+  }
+
+  .hud__track {
+    min-width: 1.9rem;
+    padding: 0 0.35rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hud__track.is-active,
+  .hud-menu__track.is-active {
+    color: var(--hud-accent);
+    border-color: color-mix(in srgb, var(--hud-accent) 42%, transparent);
+    background: color-mix(in srgb, var(--hud-accent) 10%, transparent);
+  }
+
   .hud__tool--pulse {
     color: var(--hud-accent);
     border-color: color-mix(in srgb, var(--hud-accent) 30%, transparent);
@@ -706,6 +768,18 @@ const copy = chapters.map((chapter) => ({
     letter-spacing: 0.1em;
     text-transform: uppercase;
     text-decoration: none;
+  }
+
+  .hud-menu__tracks {
+    display: inline-flex;
+    gap: 0.25rem;
+  }
+
+  .hud-menu__track {
+    min-width: 2.6rem;
+    padding: 0.55rem 0.6rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   .hud-menu__foot {

@@ -350,7 +350,8 @@
     const audio = getAudioEl();
     if (audio) {
       audio.addEventListener('playing', () => {
-        musicEl.textContent = '♪ SONOR #2 — SONANDO';
+        const label = audio.dataset.trackLabel || 'SONANDO';
+        musicEl.textContent = `♪ ${label} — SONANDO`;
         musicEl.classList.add('is-on');
       });
       audio.addEventListener('pause', () => {

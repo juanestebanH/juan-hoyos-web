@@ -3,8 +3,11 @@
 // decodificado aparte para animar el loader al ritmo real de la canción.
 
 let envelope: Float32Array | null = null;
+let envelopeSrc = '';
 let envDuration = 0;
 let envPromise: Promise<Float32Array | null> | null = null;
+let envPromiseSrc = '';
+let envToken = 0;
 let level = 0;
 
 export function getAudioEl(): HTMLAudioElement | null {
@@ -25,15 +28,17 @@ export function playDirect(): Promise<boolean> {
 // Decodifica el mp3 aparte (no afecta la reproducción) y calcula ~N buckets
 // de energía RMS normalizados. Solo se ejecuta una vez.
 export function buildEnvelope(buckets = 420): Promise<Float32Array | null> {
-  if (envelope) return Promise.resolve(envelope);
-  if (envPromise) return envPromise;
+  const el = getAudioEl();
+  if (!el) return Promise.resolve(null);
+  const src = el.currentSrc || el.src;
+  if (!src) return Promise.resolve(null);
+  if (envelope && envelopeSrc === src) return Promise.resolve(envelope);
+  if (envPromise && envPromiseSrc === src) return envPromise;
 
-  envPromise = (async () => {
-    const el = getAudioEl();
-    if (!el) return null;
-    const src = el.currentSrc || el.src;
-    if (!src) return null;
+  const token = ++envToken;
+  envPromiseSrc = src;
 
+  const promise = (async () => {
     const AC: typeof AudioContext | undefined =
       (window as any).AudioContext || (window as any).webkitAudioContext;
     if (!AC) return null;
@@ -65,8 +70,11 @@ export function buildEnvelope(buckets = 420): Promise<Float32Array | null> {
       }
       if (max > 0) for (let i = 0; i < buckets; i++) out[i] /= max;
 
+      if (token !== envToken) return null;
+
       envDuration = audioBuf.duration;
       envelope = out;
+      envelopeSrc = src;
       try {
         await ctx.close();
       } catch {
@@ -78,7 +86,17 @@ export function buildEnvelope(buckets = 420): Promise<Float32Array | null> {
     }
   })();
 
-  return envPromise;
+  envPromise = promise;
+  promise.then(
+    () => {
+      if (envPromise === promise) envPromise = null;
+    },
+    () => {
+      if (envPromise === promise) envPromise = null;
+    },
+  );
+
+  return promise;
 }
 
 // Nivel 0..1 en un instante del track (interpolado y suavizado).

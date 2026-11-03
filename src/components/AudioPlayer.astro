@@ -1,7 +1,16 @@
 ---
+import { tracks } from '../data/tracks';
+
+const firstTrack = tracks[0];
 ---
 
-<audio id="bg-audio" src="/mixkit-sonor-2-570.mp3" loop preload="none"></audio>
+<audio
+  id="bg-audio"
+  src={firstTrack.src}
+  loop
+  preload="none"
+  data-track-label={firstTrack.loaderLabel}
+></audio>
 
 <style>
   :global(.music-btn),
@@ -19,6 +28,7 @@
 <script>
   import gsap from 'gsap';
   import { playDirect } from '../util/audio';
+  import { tracks } from '../data/tracks';
 
   function initMusic() {
     const audio = document.getElementById('bg-audio') as HTMLAudioElement | null;
@@ -30,7 +40,24 @@
     if (audio.dataset.musicReady === '1') return;
     audio.dataset.musicReady = '1';
 
-    const TARGET = 0.35;
+    const trackButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('[data-track-index]'),
+    );
+
+    const readTrackIndex = () => {
+      try {
+        const raw = Number(localStorage.getItem('music:track'));
+        if (Number.isInteger(raw) && raw >= 0 && raw < tracks.length) return raw;
+      } catch {
+        /* ignora */
+      }
+      return 0;
+    };
+
+    let trackIndex = readTrackIndex();
+    let currentGain = tracks[trackIndex].gain;
+    let trackToken = 0;
+
     const GESTURES = [
       'pointerdown',
       'pointerup',
@@ -47,19 +74,42 @@
 
     audio.volume = 0;
 
-    // ── UI refleja el estado real del <audio> ──
     const isAudible = () => !audio.paused && !audio.muted;
-    let uiOn = false;
+    const musicOn = () => {
+      try {
+        return localStorage.getItem('music') !== 'off';
+      } catch {
+        return true;
+      }
+    };
+
+    // ── UI refleja el estado real del <audio> ──
     const syncUI = () => {
       const on = isAudible();
-      if (on === uiOn) return;
-      uiOn = on;
       btnDesktop.classList.toggle('is-on', on);
       btnMobile.classList.toggle('is-on', on);
+      trackButtons.forEach((btn) => {
+        const index = Number(btn.dataset.trackIndex);
+        const active = index === trackIndex;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
     };
     ['play', 'pause', 'playing', 'volumechange'].forEach((ev) =>
       audio.addEventListener(ev, syncUI),
     );
+
+    const applyInitialTrack = () => {
+      const track = tracks[trackIndex];
+      if (audio.getAttribute('src') !== track.src) {
+        audio.src = track.src;
+      }
+      audio.dataset.trackLabel = track.loaderLabel;
+      audio.dataset.trackIndex = String(trackIndex);
+      currentGain = track.gain;
+      syncUI();
+    };
+    applyInitialTrack();
 
     // ── Precarga en idle (arranque instantáneo) ──
     const conn = (navigator as any).connection;
@@ -80,7 +130,7 @@
 
     const fadeIn = () => {
       audio.muted = false;
-      gsap.to(audio, { volume: TARGET, duration: 0.6, ease: 'power2.inOut' });
+      gsap.to(audio, { volume: currentGain, duration: 0.6, ease: 'power2.inOut' });
     };
 
     // Intenta reproducir con sonido (reproducción directa, sin Web Audio).
@@ -132,6 +182,58 @@
       });
     };
 
+    const changeTrack = (nextIndex: number) => {
+      const target = ((nextIndex % tracks.length) + tracks.length) % tracks.length;
+      if (target === trackIndex) return;
+
+      const token = ++trackToken;
+      const wasAudible = isAudible() && musicOn();
+      trackIndex = target;
+
+      const track = tracks[trackIndex];
+      currentGain = track.gain;
+      try {
+        localStorage.setItem('music:track', String(trackIndex));
+      } catch {
+        /* ignora */
+      }
+      syncUI();
+
+      const swap = () => {
+        if (token !== trackToken) return;
+        gsap.killTweensOf(audio);
+        audio.pause();
+        audio.src = track.src;
+        audio.dataset.trackLabel = track.loaderLabel;
+        audio.dataset.trackIndex = String(trackIndex);
+        audio.muted = false;
+        audio.volume = 0;
+        warmed = false;
+        audio.load();
+
+        if (wasAudible) {
+          audio
+            .play()
+            .then(() => {
+              if (token === trackToken) fadeIn();
+            })
+            .catch(() => {});
+        }
+      };
+
+      gsap.killTweensOf(audio);
+      if (wasAudible) {
+        gsap.to(audio, {
+          volume: 0,
+          duration: 0.3,
+          ease: 'power2.inOut',
+          onComplete: swap,
+        });
+      } else {
+        swap();
+      }
+    };
+
     // ── Botón ♪: toggle manual (siempre funciona) ──
     const toggle = () => {
       if (isAudible()) {
@@ -145,6 +247,13 @@
     };
     btnDesktop.addEventListener('click', toggle);
     btnMobile.addEventListener('click', toggle);
+
+    trackButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const index = Number(btn.dataset.trackIndex);
+        if (Number.isInteger(index)) changeTrack(index);
+      });
+    });
 
     // Bounce hover (mismo lenguaje que social cards)
     [btnDesktop, btnMobile].forEach((btn) => {
@@ -173,8 +282,14 @@
 
     const onGesture = (e: Event) => {
       const t = e.target as HTMLElement | null;
-      // Si el gesto es sobre el botón, deja que su propio toggle decida
-      if (t && t.closest && t.closest('#music-toggle, #music-toggle-mobile')) return;
+      // Si el gesto es sobre música o selector, deja que su control decida
+      if (
+        t &&
+        t.closest &&
+        t.closest('#music-toggle, #music-toggle-mobile, [data-track-index]')
+      ) {
+        return;
+      }
       if (unlocked) return;
       if (loaderVisible()) return; // el loader manda mientras esté en pantalla
       startAudible();
@@ -195,4 +310,3 @@
   initMusic();
   document.addEventListener('astro:page-load', initMusic);
 </script>
-
