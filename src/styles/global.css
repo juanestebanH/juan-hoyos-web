@@ -34,10 +34,10 @@ body {
   padding: 0;
   width: 100%;
   min-height: 100%;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   -webkit-font-smoothing: antialiased;
   cursor: none !important;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -47,6 +47,150 @@ body {
   transition:
     background 0.4s ease,
     color 0.4s ease;
+}
+
+html {
+  --chapter-accent: #ffffff;
+  --scroll-progress: 0;
+  --hud-height: 5.25rem;
+  --section-title-size: clamp(2.9rem, 6vw, 6rem);
+  --section-title-leading: 0.9;
+  --section-title-tracking: -0.06em;
+}
+
+html.light {
+  --chapter-accent: #1a1a1a;
+}
+
+main {
+  position: relative;
+  z-index: 10;
+}
+
+main:focus {
+  outline: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--chapter-accent) 55%, transparent);
+  color: var(--color-neutro);
+}
+
+/* ── Progreso global ── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 45;
+  height: 2px;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--color-blanco) 8%, transparent);
+}
+
+.scroll-progress__bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: var(--chapter-accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--chapter-accent) 55%, transparent);
+  transition: background 0.5s ease;
+}
+
+/* ── Grano ── */
+.grain {
+  position: fixed;
+  inset: -50%;
+  z-index: 41;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+  animation: grain-shift 0.8s steps(2) infinite;
+  mix-blend-mode: soft-light;
+}
+
+html.light .grain {
+  opacity: 0.05;
+}
+
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, 1%); }
+  50% { transform: translate(1%, -2%); }
+  75% { transform: translate(-1%, 2%); }
+  100% { transform: translate(2%, -1%); }
+}
+
+/* ── Utilidades tipográficas del scrollytelling ── */
+.mask-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.mask-word__inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+.split-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.act-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-gris-oscuro);
+}
+
+.act-kicker::before {
+  content: '';
+  width: 1.75rem;
+  height: 1px;
+  background: var(--chapter-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--chapter-accent) 60%, transparent);
+}
+
+.act-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 0.88;
+  text-transform: uppercase;
+  color: var(--color-blanco);
+}
+
+.act-panel {
+  border: 1px solid color-mix(in srgb, var(--color-blanco) 10%, transparent);
+  background: color-mix(in srgb, var(--color-neutro) 62%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.chapter-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--chapter-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--chapter-accent) 70%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    animation: none;
+  }
 }
 
 /* Barra de scroll oculta mientras el loader esté activo */

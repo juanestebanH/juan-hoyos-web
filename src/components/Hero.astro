@@ -10,541 +10,744 @@ interface Props {
   cv_path: string;
   scroll_label: string;
 }
-const { subtitle, description, badge, btn_linkedin, btn_cv, cv_path, scroll_label } =
-  Astro.props;
+
+const {
+  subtitle,
+  description,
+  badge,
+  btn_linkedin,
+  btn_cv,
+  cv_path,
+  scroll_label,
+} = Astro.props;
 ---
 
-<section
-  id="inicio"
-  class="min-h-screen relative flex flex-col overflow-hidden grid-bg"
->
-  <canvas
-    id="starsCanvas"
-    class="absolute inset-0 z-0 w-full h-full pointer-events-none"
-    aria-hidden="true"></canvas>
+<section id="inicio" class="hero" data-hero-pending>
+  <div class="hero-orbit" aria-hidden="true"></div>
 
-  <!-- Ambient Vignette -->
-  <div class="hero-vignette absolute inset-0 pointer-events-none z-10"></div>
+  <div class="hero-shell">
+    <div class="hero-top">
+      <span class="hero-badge">
+        <span class="hero-badge__dot"></span>
+        {badge}
+      </span>
+      <span class="hero-coord">LAT 4.7110 · LON -74.0721</span>
+    </div>
 
-  <div
-    class="hero-content relative z-20 flex-1 flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto w-full"
-    style="padding-top: var(--hero-title-h, 6rem)"
-  >
-    <div class="hero-parallax flex flex-col items-center">
-      <h1 class="hero-name text-6xl sm:text-8xl md:text-9xl font-black tracking-tighter uppercase leading-none mb-6 text-blanco select-none title-drop-shadow whitespace-nowrap">
-        <span class="hero-name-line inline-block font-[var(--font-display)] font-black whitespace-nowrap">JUAN HOYOS</span>
+    <div class="hero-main">
+      <p class="hero-kicker">
+        <span class="hero-kicker__rule"></span>
+        <span>{subtitle}</span>
+      </p>
+
+      <h1 class="hero-title" aria-label="Juan Hoyos">
+        <span class="hero-line" aria-hidden="true">
+          <span class="hero-word" data-hero-word>JUAN HOYOS</span>
+        </span>
       </h1>
 
-      <div class="hero-pill hero-anim opacity-0 translate-y-6 inline-flex items-center space-x-2 px-3.5 py-1.5 mb-8 rounded-full backdrop-blur-md text-xs font-mono tracking-widest uppercase">
-        <span class="w-1.5 h-1.5 rounded-full bg-blanco animate-pulse"></span>
-        <span class="font-[var(--font-mono)]">{badge}</span>
-      </div>
+      <div class="hero-lower">
+        <p class="hero-desc">{description}</p>
 
-  <h3 class="hero-kicker">
-    <span class="hero-kicker-text font-[var(--font-mono)]">{subtitle}</span>
-    <span class="hero-caret" aria-hidden="true"></span>
-  </h3>
+        <div class="hero-actions">
+          <a
+            href="https://www.linkedin.com/in/juan-esteban-hoyos-0b60912b4/"
+            target="_blank"
+            rel="noopener"
+            class="hero-btn hero-btn--solid"
+          >
+            <Icon name="mdi:linkedin" class="hero-btn__icon" />
+            <span>{btn_linkedin}</span>
+          </a>
 
-  <p class="mt-8 text-gris-oscuro max-w-lg text-lg hero-text font-[var(--font-body)]">
-    {description}
-  </p>
-
-      <div class="mt-12 flex gap-4 justify-center flex-wrap hero-buttons">
-        <a
-          href="https://www.linkedin.com/in/juan-esteban-hoyos-0b60912b4/"
-          target="_blank"
-          rel="noopener"
-          class="hero-btn hero-cta-primary flex items-center gap-2 px-8 py-4 border-2 shadow-[4px_4px_0_black] hover:shadow-[6px_6px_0_black] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 cursor-pointer font-[var(--font-body)]"
-        >
-          <Icon name="mdi:linkedin" class="w-5 h-5" />
-          {btn_linkedin}
-        </a>
-
-        <a
-          href={cv_path}
-          download="CV_JuanHoyos.pdf"
-          class="hero-btn hero-cta-secondary px-8 py-4 border-2 shadow-[4px_4px_0_black] hover:shadow-[6px_6px_0_black] hover:translate-x-0.5 hover:translate-y-0.5 transition-all duration-200 cursor-pointer font-[var(--font-body)]"
-        >
-          <span class="inline-flex items-center gap-2">
-            <Icon name="mdi:download" class="w-5 h-5 hero-btn-icon" />
-            {btn_cv}
-          </span>
-        </a>
+          <a
+            href={cv_path}
+            download="CV_JuanHoyos.pdf"
+            class="hero-btn hero-btn--ghost"
+          >
+            <Icon name="mdi:download" class="hero-btn__icon hero-btn__icon--down" />
+            <span>{btn_cv}</span>
+          </a>
+        </div>
       </div>
     </div>
+
   </div>
 
-  <a
-    href="#tecnologias"
-  class="hero-scroll absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 text-gris-claro hover:text-blanco transition-colors font-[var(--font-mono)]"
-  aria-label={scroll_label}
->
-    <span class="hero-scroll-text">{scroll_label}</span>
-    <Icon name="mdi:chevron-down" class="hero-scroll-icon w-6 h-6" />
+  <a href="#sobre-mi" class="hero-scroll" aria-label={scroll_label}>
+    <span>{scroll_label}</span>
+    <span class="hero-scroll__rail" aria-hidden="true">
+      <span class="hero-scroll__dot"></span>
+    </span>
   </a>
 </section>
 
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { initHeroBlocks } from '../util/heroBlocks';
+  import { splitChars } from '../util/text';
 
   gsap.registerPlugin(ScrollTrigger);
 
-  let heroInited = false;
+  let ctx: gsap.Context | undefined;
+  let exitTl: gsap.core.Timeline | undefined;
+  let inited = false;
 
   function initHero() {
-    const banner = document.getElementById('inicio') as HTMLElement;
-    const canvas = document.getElementById('starsCanvas') as HTMLCanvasElement;
+    const section = document.getElementById('inicio');
+    if (!section || inited) return;
+    inited = true;
 
-    if (!banner || !canvas) return;
-    if (heroInited) return;
-    heroInited = true;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const words = Array.from(
+      section.querySelectorAll<HTMLElement>('[data-hero-word]'),
+    );
+    const chars = words.flatMap((word) => splitChars(word));
 
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)',
-    ).matches;
-
-    // Reserva de espacio del título
-    const stars = initHeroBlocks(canvas, banner, (box) => {
-      const vh = banner.clientHeight || window.innerHeight;
-      const pad = Math.min(220, vh * 0.32);
-      banner.style.setProperty('--hero-title-h', `${Math.round(pad)}px`);
-    });
-
-    const cleanups: Array<() => void> = [];
-    const mm = gsap.matchMedia();
-
-    // ── ANIMACIONES DE ENTRADA ───────────────────────────────
-    const introSelectors = [
-      '.hero-name',
-      '.hero-anim',
-      '.hero-kicker',
-      '.hero-text',
-      '.hero-buttons a',
-      '.hero-scroll',
-    ];
-
-    if (reduceMotion) {
-      gsap.set(introSelectors, { opacity: 1, y: 0, clearProps: 'all' });
-      gsap.set('.hero-name-line', {
+    const resetHero = () => {
+      exitTl?.progress(0);
+      section.removeAttribute('data-hero-pending');
+      gsap.set(chars, {
+        x: 0,
+        yPercent: 0,
+        z: 0,
+        scaleX: 1,
+        scaleY: 1,
+        rotationX: 0,
+        rotationY: 0,
+        rotationZ: 0,
         opacity: 1,
-        filter: 'none',
-        letterSpacing: '-0.05em',
-        scale: 1,
       });
-    } else {
-      const narrow = window.innerWidth < 640;
-      gsap.set('.hero-name-line', {
-        opacity: 0,
-        filter: `blur(${narrow ? 10 : 14}px)`,
-        letterSpacing: narrow ? '0.06em' : '0.22em',
-        scale: 1.04,
-        transformOrigin: '50% 50%',
-      });
-      gsap.set('.hero-anim', { opacity: 0, y: 16 });
-      gsap.set('.hero-kicker', { opacity: 0, y: 12 });
-      gsap.set('.hero-text', { opacity: 0, y: 16 });
-      gsap.set('.hero-buttons a', { opacity: 0, y: 20 });
-      gsap.set('.hero-scroll', { opacity: 0 });
+      gsap.set('.hero-main', { yPercent: 0, scale: 1 });
+      gsap.set('.hero-orbit', { scale: 1, opacity: 1, rotation: 0 });
+      gsap.set('.hero-kicker__rule', { scaleX: 1 });
+      gsap.set(
+        [
+          '.hero-badge',
+          '.hero-coord',
+          '.hero-kicker',
+          '.hero-desc',
+          '.hero-actions',
+          '.hero-scroll',
+        ],
+        { y: 0, opacity: 1 },
+      );
+    };
 
-      // La intro espera a que el loader libere la página (loader:done).
-      let introPlayed = false;
-      const playIntro = () => {
-        if (introPlayed) return;
-        introPlayed = true;
-        if (typeof (stars as any).playIntro === 'function') {
-          (stars as any).playIntro();
-        }
-        const tl = gsap.timeline({ delay: 0.15 });
-        tl.to('.hero-name-line', {
-          opacity: 1,
-          filter: 'blur(0px)',
-          letterSpacing: '-0.05em',
-          scale: 1,
-          duration: 1.45,
-          ease: 'expo.out',
-        })
-          .to(
-            '.hero-anim',
-            { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' },
-            '-=0.6',
-          )
+    ctx = gsap.context(() => {
+      if (reduced) {
+        gsap.set(
+          '.hero-line, .hero-kicker, .hero-desc, .hero-actions, .hero-scroll, .hero-badge, .hero-coord',
+          { opacity: 1, clearProps: 'transform' },
+        );
+        gsap.set('.hero-orbit, .hero-kicker__rule', { opacity: 1, scale: 1 });
+        section.removeAttribute('data-hero-pending');
+        return;
+      }
+
+      gsap.set(chars, {
+        yPercent: -300,
+        z: -320,
+        scale: 0.76,
+        rotationX: 68,
+        rotationY: (index) => (index % 2 ? -16 : 16),
+        rotationZ: (index) => ((index % 3) - 1) * 6,
+        opacity: 0,
+        transformOrigin: '50% 100%',
+        force3D: true,
+      });
+      gsap.set(
+        ['.hero-badge', '.hero-coord', '.hero-kicker', '.hero-desc', '.hero-actions a', '.hero-scroll'],
+        { opacity: 0, y: 18 },
+      );
+      gsap.set('.hero-kicker__rule', { scaleX: 0, transformOrigin: 'left center' });
+      gsap.set('.hero-orbit', { scale: 0.86, opacity: 0, rotation: -8 });
+      section.removeAttribute('data-hero-pending');
+
+      let played = false;
+      let attachTitleExit: (() => void) | undefined;
+      const play = () => {
+        if (played) return;
+        played = true;
+        window.dispatchEvent(new CustomEvent('hero:intro'));
+
+        const tl = gsap.timeline({ delay: 0.08 });
+        tl.to(
+          '.hero-orbit',
+          { opacity: 1, scale: 1, rotation: 0, duration: 1.5, ease: 'power3.out' },
+          0,
+        )
           .to(
             '.hero-kicker',
-            { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
-            '-=0.4',
+            { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' },
+            0.08,
           )
           .to(
-            '.hero-text',
-            { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' },
-            '+=0.2',
+            '.hero-kicker__rule',
+            { scaleX: 1, duration: 0.85, ease: 'expo.out' },
+            0.14,
           )
           .to(
-            '.hero-buttons a',
+            chars,
+            {
+              yPercent: 0,
+              z: 0,
+              scale: 1,
+              rotationX: 0,
+              rotationY: 0,
+              rotationZ: 0,
+              duration: 1.55,
+              stagger: { each: 0.045, from: 'center' },
+              ease: 'power4.out',
+            },
+            0.2,
+          )
+          .to(
+            chars,
+            {
+              opacity: 1,
+              duration: 0.5,
+              stagger: { each: 0.03, from: 'center' },
+              ease: 'power1.out',
+            },
+            0.6,
+          )
+          .to(
+            '.hero-badge',
+            { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' },
+            0.42,
+          )
+          .to(
+            '.hero-coord',
+            { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' },
+            0.5,
+          )
+          .to(
+            '.hero-desc',
+            { opacity: 1, y: 0, duration: 0.65, ease: 'power2.out' },
+            1.45,
+          )
+          .to(
+            '.hero-actions a',
             {
               opacity: 1,
               y: 0,
-              stagger: 0.12,
-              duration: 0.5,
-              ease: 'back.out(1.5)',
+              duration: 0.6,
+              stagger: 0.08,
+              ease: 'power3.out',
             },
-            '-=0.3',
+            1.6,
           )
           .to(
             '.hero-scroll',
-            { opacity: 1, duration: 0.6, ease: 'power2.out' },
-            '-=0.2',
+            { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' },
+            1.75,
           );
+        tl.eventCallback('onComplete', () => {
+          section.classList.add('hero-intro-done');
+          attachTitleExit?.();
+          attachTitleExit = undefined;
+        });
       };
 
       const loader = document.getElementById('loader');
-      if (!loader || loader.style.display === 'none') {
-        playIntro();
-      } else {
-        window.addEventListener('loader:done', playIntro, { once: true });
-      }
-    }
+      if (!loader || loader.style.display === 'none') play();
+      else window.addEventListener('loader:done', play, { once: true });
 
-    // ── Parallax sutil del DOM siguiendo el mouse ────────────
-    if (!reduceMotion) {
-      const onMove = (e: MouseEvent) => {
-        const rect = banner.getBoundingClientRect();
-        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const ny = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-        gsap.to('.hero-parallax', {
-          x: nx * -12,
-          y: ny * -10,
-          duration: 0.8,
+      const mm = gsap.matchMedia();
+
+      mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+        const exit = (exitTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: () => `+=${Math.round(window.innerHeight * 0.9)}`,
+            pin: true,
+            scrub: 1,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        }));
+
+        exit
+          .to('.hero-main', { yPercent: -2, scale: 0.92, ease: 'power1.inOut' }, 0)
+          .to('.hero-badge', { y: -90, opacity: 0, ease: 'none' }, 0.05)
+          .to('.hero-kicker', { y: -110, opacity: 0, ease: 'none' }, 0.08)
+          .to('.hero-desc', { y: -150, opacity: 0, ease: 'none' }, 0.14)
+          .to('.hero-actions', { y: -200, opacity: 0, ease: 'none' }, 0.18)
+          .to(['.hero-scroll', '.hero-coord'], { opacity: 0, y: 20, ease: 'none' }, 0)
+          .to('.hero-orbit', { scale: 1.35, opacity: 0, ease: 'none' }, 0);
+
+        attachTitleExit = () => {
+          if (!exitTl) return;
+          exitTl.fromTo(
+            '.hero-title .split-char',
+            {
+              x: 0,
+              yPercent: 0,
+              z: 0,
+              scale: 1,
+              rotationX: 0,
+              rotationZ: 0,
+              opacity: 1,
+            },
+            {
+              x: (i) => (i % 2 ? 1 : -1) * (34 + (i % 5) * 32),
+              yPercent: (i) => -16 - (i % 6) * 12,
+              z: (i) => (i % 2 ? 70 : -70),
+              scale: (i) => 0.82 + (i % 3) * 0.1,
+              rotationX: (i) => ((i % 5) - 2) * 18,
+              rotationZ: (i) => ((i % 3) - 1) * 22,
+              opacity: 0,
+              stagger: { each: 0.02, from: 'center' },
+              duration: 0.9,
+              ease: 'power1.inOut',
+              immediateRender: false,
+            },
+            0,
+          );
+        };
+
+        if (section.classList.contains('hero-intro-done')) {
+          attachTitleExit();
+          attachTitleExit = undefined;
+        }
+
+        return () => {
+          attachTitleExit = undefined;
+          exit.scrollTrigger?.kill();
+          exit.kill();
+          exitTl = undefined;
+        };
+      });
+
+      mm.add('(max-width: 1023px) and (prefers-reduced-motion: no-preference)', () => {
+        const exit = (exitTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: 'top top',
+            end: 'bottom top',
+            scrub: 0.5,
+          },
+        }));
+        exit
+          .to('.hero-main', { y: -50, opacity: 0.1, ease: 'none' }, 0)
+          .to(['.hero-badge', '.hero-coord', '.hero-scroll'], { opacity: 0, ease: 'none' }, 0);
+
+        return () => {
+          exit.scrollTrigger?.kill();
+          exit.kill();
+          exitTl = undefined;
+        };
+      });
+    }, section);
+
+    if (!reduced && window.matchMedia('(pointer: fine)').matches) {
+      const onMove = (event: PointerEvent) => {
+        const rect = section.getBoundingClientRect();
+        const x = (event.clientX / rect.width - 0.5) * 2;
+        const y = (event.clientY / rect.height - 0.5) * 2;
+        gsap.to('.hero-main', {
+          x: x * -10,
+          y: y * -8,
+          duration: 0.9,
           ease: 'power2.out',
           overwrite: 'auto',
         });
       };
-      banner.addEventListener('mousemove', onMove);
-      cleanups.push(() => banner.removeEventListener('mousemove', onMove));
+      section.addEventListener('pointermove', onMove);
+      ctx.add(() => {
+        section.removeEventListener('pointermove', onMove);
+      });
     }
 
-    // ── Salida del hero ligada al scroll ─────────────────────
-    mm.add(
-      '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
-      () => {
-        const exit = gsap.timeline({
-          scrollTrigger: {
-            trigger: banner,
-            start: 'top top',
-            end: () => '+=' + Math.round(window.innerHeight * 0.6),
-            pin: true,
-            scrub: 0.8,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-          },
+    const buttons = section.querySelectorAll<HTMLElement>('.hero-btn');
+    if (!reduced && window.matchMedia('(pointer: fine)').matches) {
+      buttons.forEach((button) => {
+        const x = gsap.quickTo(button, 'x', { duration: 0.4, ease: 'power3.out' });
+        const y = gsap.quickTo(button, 'y', { duration: 0.4, ease: 'power3.out' });
+        button.addEventListener('pointermove', (event) => {
+          const rect = button.getBoundingClientRect();
+          x((event.clientX - rect.left - rect.width / 2) * 0.18);
+          y((event.clientY - rect.top - rect.height / 2) * 0.24);
         });
-
-        exit
-          .to(
-            '.hero-content',
-            { yPercent: -7, scale: 0.93, opacity: 0.1, ease: 'none' },
-            0,
-          )
-          .to(canvas, { scale: 1.12, opacity: 0.08, ease: 'none' }, 0)
-          .to('.hero-vignette', { opacity: 0.72, ease: 'none' }, 0)
-          .to('.hero-scroll', { opacity: 0, ease: 'none' }, 0);
-
-        return () => {
-          exit.scrollTrigger?.kill();
-          exit.kill();
-        };
-      },
-    );
-
-    mm.add(
-      '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
-      () => {
-        const exit = gsap.timeline({
-          scrollTrigger: {
-            trigger: banner,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 0.6,
-          },
+        button.addEventListener('pointerleave', () => {
+          x(0);
+          y(0);
         });
-
-        exit
-          .to('.hero-content', { opacity: 0, y: -40, ease: 'none' }, 0)
-          .to(canvas, { opacity: 0.15, ease: 'none' }, 0)
-          .to('.hero-scroll', { opacity: 0, ease: 'none' }, 0);
-
-        return () => {
-          exit.scrollTrigger?.kill();
-          exit.kill();
-        };
-      },
-    );
-
-    // ── Observer de tema — solo reacciona si 'light' cambió ──
-    const themeObserver = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        const oldClasses = mutation.oldValue ?? '';
-        const newClasses = document.documentElement.className;
-        const wasLight = oldClasses.includes('light');
-        const isNowLight = newClasses.includes('light');
-        if (wasLight !== isNowLight) stars.updateTheme(isNowLight);
-      }
-    });
-    themeObserver.observe(document.documentElement, {
-      attributeFilter: ['class'],
-      attributeOldValue: true,
-    });
-    stars.updateTheme(document.documentElement.classList.contains('light'));
-    cleanups.push(() => themeObserver.disconnect());
-
-    // ── Efecto magnético en botones ──────────────────────────
-    const buttons = document.querySelectorAll<HTMLElement>('.hero-buttons a');
-
-    buttons.forEach((btn) => {
-      if (reduceMotion) return;
-
-      const onMove = (e: MouseEvent) => {
-        const rect = btn.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        gsap.to(btn, {
-          x: x * 0.3,
-          y: y * 0.3,
-          duration: 0.4,
-          ease: 'power2.out',
-        });
-      };
-      const onLeave = () =>
-        gsap.to(btn, {
-          x: 0,
-          y: 0,
-          duration: 0.6,
-          ease: 'elastic.out(1, 0.4)',
-        });
-      const onDown = () => gsap.to(btn, { scale: 0.94, duration: 0.1 });
-      const onUp = () =>
-        gsap.to(btn, { scale: 1, duration: 0.3, ease: 'back.out(2)' });
-
-      btn.addEventListener('mousemove', onMove);
-      btn.addEventListener('mouseleave', onLeave);
-      btn.addEventListener('mousedown', onDown);
-      btn.addEventListener('mouseup', onUp);
-
-      cleanups.push(() => {
-        btn.removeEventListener('mousemove', onMove);
-        btn.removeEventListener('mouseleave', onLeave);
-        btn.removeEventListener('mousedown', onDown);
-        btn.removeEventListener('mouseup', onUp);
       });
-    });
+    }
 
-    // ── Limpieza en navegación de Astro ──────────────────────
-    const onBeforeSwap = () => {
-      mm.revert();
-      cleanups.forEach((fn) => fn());
-      stars.destroy();
-      heroInited = false;
-    };
-    document.addEventListener('astro:before-swap', onBeforeSwap, { once: true });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initHero);
-  } else {
-    initHero();
+    if (!reduced) {
+      const resetAtTop = () => {
+        if (window.scrollY > 2) return;
+        if (!section.classList.contains('hero-intro-done')) return;
+        resetHero();
+      };
+      window.addEventListener('scroll', resetAtTop, { passive: true });
+      ctx.add(() => window.removeEventListener('scroll', resetAtTop));
+    }
   }
 
   document.addEventListener('astro:page-load', initHero);
+  if (document.readyState !== 'loading') initHero();
+  else document.addEventListener('DOMContentLoaded', initHero);
+
+  window.addEventListener(
+    'astro:before-swap',
+    () => {
+      ctx?.revert();
+      ctx = undefined;
+      exitTl = undefined;
+      inited = false;
+    },
+    { once: true },
+  );
 </script>
 
 <style>
-  #starsCanvas {
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+  :global(html.js) .hero[data-hero-pending] .hero-shell,
+  :global(html.js) .hero[data-hero-pending] .hero-scroll,
+  :global(html.js) .hero[data-hero-pending] .hero-orbit {
+    visibility: hidden;
   }
 
-  .grid-bg {
-    background-image:
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    padding: calc(var(--hud-height) + 2.5rem) clamp(1.25rem, 5vw, 4.5rem) 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .hero-orbit {
+    position: absolute;
+    z-index: -1;
+    top: 48%;
+    left: 50%;
+    width: min(92vw, 68rem);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 6%, transparent);
+    background:
       radial-gradient(
         circle at 50% 50%,
-        color-mix(in srgb, var(--color-blanco) 6%, var(--color-neutro)) 0%,
-        var(--color-neutro) 80%
-      ),
-      linear-gradient(
-        to right,
-        color-mix(in srgb, var(--color-blanco) 3%, transparent) 1px,
-        transparent 1px
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in srgb, var(--color-blanco) 3%, transparent) 1px,
-        transparent 1px
+        color-mix(in srgb, var(--chapter-accent) 8%, transparent),
+        transparent 58%
       );
-    background-size: 100% 100%, 80px 80px, 80px 80px;
+    mask-image: radial-gradient(circle, #000 30%, transparent 72%);
+    -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 72%);
+    pointer-events: none;
   }
 
-  .hero-vignette {
-    background: radial-gradient(
-      ellipse at center,
-      transparent 30%,
-      color-mix(in srgb, var(--color-neutro) 85%, transparent) 80%,
-      var(--color-neutro) 100%
-    );
+  .hero-orbit::before,
+  .hero-orbit::after {
+    content: '';
+    position: absolute;
+    inset: 12%;
+    border-radius: 50%;
+    border: 1px dashed color-mix(in srgb, var(--color-blanco) 7%, transparent);
   }
 
-  .hero-pill {
-    border: 1px solid color-mix(in srgb, var(--color-blanco) 20%, transparent);
-    background: color-mix(in srgb, var(--color-blanco) 5%, transparent);
+  .hero-orbit::after {
+    inset: 28%;
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--chapter-accent) 12%, transparent);
+  }
+
+  .hero-shell {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 90rem);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .hero-top {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.42rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 12%, transparent);
+    background: color-mix(in srgb, var(--color-neutro) 55%, transparent);
+    backdrop-filter: blur(10px);
+    color: var(--color-gris-claro);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+  }
+
+  .hero-badge__dot {
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--chapter-accent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--chapter-accent) 60%, transparent);
+    animation: hero-pulse 2.4s ease-out infinite;
+  }
+
+  @keyframes hero-pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--chapter-accent) 55%, transparent); }
+    70% { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+
+  .hero-coord {
+    position: absolute;
+    right: 0;
+    color: var(--color-gris-oscuro);
+    font-size: 0.56rem;
+    letter-spacing: 0.18em;
+  }
+
+  .hero-main {
+    width: 100%;
+    max-width: 76rem;
+    margin: auto;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    will-change: transform, opacity, filter;
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 0 0 1.1rem;
+    font-family: var(--font-mono);
+    font-size: clamp(0.62rem, 1vw, 0.76rem);
+    font-weight: 500;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
     color: var(--color-gris-claro);
   }
 
-  .hero-cta-primary {
+  .hero-kicker__rule {
+    display: inline-block;
+    width: clamp(1.5rem, 4vw, 3.5rem);
+    height: 1px;
+    background: var(--chapter-accent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--chapter-accent) 60%, transparent);
+  }
+
+  .hero-main {
+    perspective: 1200px;
+    transform-style: preserve-3d;
+  }
+
+  .hero-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(3.3rem, 10.6vw, 10.8rem);
+    font-weight: 900;
+    line-height: 0.82;
+    letter-spacing: -0.055em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform-style: preserve-3d;
+  }
+
+  .hero-line {
+    display: block;
+    overflow: visible;
+    padding-right: 0.08em;
+  }
+
+  .hero-word {
+    display: inline-block;
+    white-space: nowrap;
+    transform-style: preserve-3d;
+  }
+
+  .hero-word :global(.split-char) {
+    display: inline-block;
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
+  }
+
+  .hero-lower {
+    margin-top: clamp(1.5rem, 4vh, 2.6rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.35rem;
+    width: 100%;
+  }
+
+  .hero-desc {
+    margin: 0;
+    max-width: 38rem;
+    font-size: clamp(0.95rem, 1.35vw, 1.15rem);
+    line-height: 1.55;
+    color: var(--color-gris-claro);
+    text-align: center;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.3rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      background 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .hero-btn__icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .hero-btn--solid {
     background: var(--color-blanco);
     color: var(--color-neutro);
     border-color: var(--color-blanco);
   }
 
-  .hero-cta-primary:hover {
-    background: color-mix(in srgb, var(--color-blanco) 85%, var(--color-neutro));
+  .hero-btn--solid:hover {
+    box-shadow: 0 0 34px -10px color-mix(in srgb, var(--chapter-accent) 70%, transparent);
   }
 
-  .hero-cta-secondary {
-    background: transparent;
+  .hero-btn--ghost {
     color: var(--color-blanco);
+    border-color: color-mix(in srgb, var(--color-blanco) 24%, transparent);
+    background: color-mix(in srgb, var(--color-neutro) 35%, transparent);
+  }
+
+  .hero-btn--ghost:hover {
     border-color: var(--color-blanco);
+    background: color-mix(in srgb, var(--color-blanco) 7%, transparent);
   }
 
-  .hero-cta-secondary:hover {
-    background: color-mix(in srgb, var(--color-blanco) 10%, transparent);
-  }
-
-  .text-glow {
-    text-shadow:
-      0 0 40px rgba(0, 0, 0, 0.9),
-      0 0 80px rgba(0, 0, 0, 0.95),
-      0 4px 20px rgba(0, 0, 0, 1);
-  }
-
-  .title-drop-shadow {
-    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
-  }
-
-  :global(html.light) .title-drop-shadow {
-    filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.2))
-      drop-shadow(0 0 10px rgba(0, 0, 0, 0.1));
-  }
-
-  .hero-name {
-    font-family: var(--font-display);
-  }
-
-  .hero-name-line {
-    display: inline-block;
-    font-family: var(--font-display);
-    white-space: nowrap;
-  }
-
-  /* ── Badge de disponibilidad ── */
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.9rem;
-    border: 1px solid var(--color-borde);
-    border-radius: 9999px;
-    font-size: 0.8rem;
-    letter-spacing: 0.02em;
-    color: var(--color-gris-claro);
-    background: color-mix(in srgb, var(--color-neutro) 70%, transparent);
-    backdrop-filter: blur(6px);
-  }
-
-  .hero-badge-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 9999px;
-    background: var(--color-secondary);
-    animation: badge-pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes badge-pulse {
-    0% {
-      box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-secondary) 55%, transparent);
-    }
-    70% {
-      box-shadow: 0 0 0 7px transparent;
-    }
-    100% {
-      box-shadow: 0 0 0 0 transparent;
-    }
-  }
-
-  /* ── Kicker (subtítulo) + caret ── */
-  .hero-kicker {
-    margin-top: 1.1rem;
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--color-gris-claro);
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .hero-caret {
-    display: inline-block;
-    width: 2px;
-    height: 1.05em;
-    margin-left: 0.35rem;
-    background: var(--color-secondary);
-    vertical-align: -0.12em;
-    animation: caret-blink 1.05s steps(1) infinite;
-  }
-
-  @keyframes caret-blink {
-    0%,
-    49% {
-      opacity: 1;
-    }
-    50%,
-    100% {
-      opacity: 0;
-    }
-  }
-
-  /* ── Cue de scroll ── */  .hero-scroll-text {
-    font-size: 0.7rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-  }
-
-  .hero-scroll-icon {
-    animation: scroll-bounce 1.8s ease-in-out infinite;
-  }
-
-  @keyframes scroll-bounce {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(6px);
-    }
-  }
-
-  .hero-btn-icon {
-    transition: transform 0.25s ease;
-  }
-
-  .hero-btn:hover .hero-btn-icon {
+  .hero-btn:hover .hero-btn__icon--down {
     transform: translateY(3px);
   }
 
+  .hero-btn__icon--down {
+    transition: transform 0.25s ease;
+  }
+
+  .hero-scroll {
+    position: relative;
+    z-index: 3;
+    width: min(100%, 90rem);
+    margin: 1.5rem auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    color: var(--color-gris-oscuro);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .hero-scroll:hover {
+    color: var(--color-blanco);
+  }
+
+  .hero-scroll__rail {
+    position: relative;
+    width: 4rem;
+    height: 1px;
+    background: color-mix(in srgb, var(--color-blanco) 14%, transparent);
+    overflow: hidden;
+  }
+
+  .hero-scroll__dot {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 0.8rem;
+    height: 3px;
+    background: var(--chapter-accent);
+    animation: hero-scroll-run 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  @keyframes hero-scroll-run {
+    0% { transform: translateX(-100%); }
+    55% { transform: translateX(420%); }
+    100% { transform: translateX(420%); }
+  }
+
+  @media (min-width: 1024px) {
+    .hero {
+      padding-top: calc(var(--hud-height) + 1.5rem);
+    }
+
+    .hero-title {
+      font-size: clamp(6rem, 10.4vw, 11rem);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero-title {
+      font-size: clamp(3.1rem, 12vw, 5rem);
+      line-height: 0.86;
+    }
+
+    .hero-actions {
+      width: 100%;
+    }
+
+    .hero-btn {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .hero-coord {
+      display: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .hero-badge-dot,
-    .hero-caret,
-    .hero-scroll-icon {
+    .hero-badge__dot,
+    .hero-scroll__dot {
       animation: none;
     }
   }

@@ -1,0 +1,85 @@
+<div class="scroll-world" aria-hidden="true">
+  <canvas id="world-canvas" class="scroll-world__canvas"></canvas>
+  <div class="scroll-world__grid"></div>
+  <div class="scroll-world__vignette"></div>
+</div>
+
+<style>
+  .scroll-world {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .scroll-world__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+  }
+
+  .scroll-world__grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.14;
+    background-image:
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-blanco) 5%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-blanco) 5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 88px 88px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 42%, #000, transparent 78%);
+    -webkit-mask-image: radial-gradient(
+      ellipse 80% 70% at 50% 42%,
+      #000,
+      transparent 78%
+    );
+  }
+
+  .scroll-world__vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        ellipse 78% 66% at 50% 45%,
+        transparent 32%,
+        color-mix(in srgb, var(--color-neutro) 24%, transparent) 76%,
+        color-mix(in srgb, var(--color-neutro) 72%, transparent) 100%
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-neutro) 28%, transparent),
+        transparent 20%,
+        transparent 78%,
+        color-mix(in srgb, var(--color-neutro) 42%, transparent)
+      );
+  }
+
+  :global(html.light) .scroll-world__canvas {
+    opacity: 1;
+  }
+
+  :global(html.light) .scroll-world__grid {
+    opacity: 0.12;
+  }
+
+  :global(html.light) .scroll-world__vignette {
+    opacity: 0.27;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-world__canvas {
+      opacity: 0.7;
+    }
+  }
+</style>

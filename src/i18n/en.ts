@@ -30,15 +30,98 @@ export const en = {
     cv_path: '/cv-juan-hoyos-en.pdf',
   },
   contacto_title: 'Contact',
-  contacto_subtitle: "Let's Talk!",
-  contacto_btn_email: 'Send Message',
+  contacto_subtitle: "Let's Talk",
+  contacto_btn_email: 'Send message',
   contacto_description:
-    'I am always open to new opportunities and collaborations. Feel free to reach out to me through any of my social media channels.',
+    'Have an idea, a product or a role in mind? I am ready to turn it into something that works and feels right. Drop me a line and let us talk.',
   contacto_fomulario_nombre: 'Name',
   contacto_fomulario_email: 'Email',
   contacto_fomulario_mensaje: 'Message',
 
   cv_path: '/cv-juan-hoyos-en.pdf',
+
+  manifesto: {
+    protocol: '02 / About',
+    readout: 'Scroll to read',
+    statement:
+      'I design and build complete digital products: from what you see on screen to everything that makes them work behind the scenes.',
+    meter_label: 'Intent / execution',
+    about_label: 'Profile',
+    status: 'Available for work',
+  },
+
+  stack: {
+    kicker: '03 / Stack',
+    title: 'Technologies',
+    description:
+      'The tools I use to take an idea from the first sketch to a fast, accessible, production-ready interface.',
+    index_label: 'Capabilities',
+    hint: 'Pick a layer',
+    cats: {
+      all: 'All',
+      frontend: 'Frontend',
+      backend: 'Backend',
+      data: 'Data',
+      creative: 'Creative',
+    },
+    capabilities: {
+      frontend: {
+        label: 'Frontend',
+        desc: 'Fast, accessible interfaces with personality, built from clear and scalable components.',
+      },
+      backend: {
+        label: 'Backend',
+        desc: 'Robust, secure business logic and APIs that are easy to maintain in production.',
+      },
+      mvc: {
+        label: 'MVC architecture',
+        desc: 'Well-structured PHP/Laravel applications with separated concerns and a solid data model.',
+      },
+      data: {
+        label: 'Data',
+        desc: 'Modeling, queries and persistence so the product rests on a reliable foundation.',
+      },
+      creative: {
+        label: 'Creative coding',
+        desc: 'WebGL, animation and motion that turn a screen into a memorable experience.',
+      },
+      ui: {
+        label: 'UI / Design systems',
+        desc: 'Consistent visual systems that save time and keep the product coherent.',
+      },
+    },
+  },
+
+  works: {
+    kicker: '04 / Works',
+    now_showing: 'Now showing',
+    open_case: 'Open case',
+    demo: 'Demo',
+    code: 'Code',
+    hint: 'Scroll to explore',
+    year: 'Year',
+    status: 'Status',
+    stack: 'Stack',
+  },
+
+  experience: {
+    kicker: '05 / Journey',
+    readout: 'Education · Work · Freelance',
+  },
+
+  contact: {
+    kicker: '06 / Portal',
+    local_time: 'Local time',
+    availability_label: 'Availability',
+    availability: 'Open to projects',
+    socials: 'Find me',
+    cv: 'Download CV',
+    form_title: 'Tell me about the project',
+    form_note: 'Reply < 48 h',
+    direct: 'Or email me directly',
+    footer: 'Designed and developed by Juan Esteban Hoyos',
+    back_top: 'Back to top',
+  },
 
   projects: {
     ecommerce:

@@ -1,137 +1,156 @@
 ---
 import { Icon } from 'astro-icon/components';
+import { chapters } from '../data/chapters';
 import AudioPlayer from './AudioPlayer.astro';
 
 const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
 const switchPath = lang === 'es' ? '/en' : '/';
-
-const items =
-  lang === 'es'
-    ? [
-        { nombre: 'Inicio', href: '#inicio' },
-        { nombre: 'Tecnologías', href: '#tecnologias' },
-        { nombre: 'Proyectos', href: '#proyectos' },
-        { nombre: 'Experiencia', href: '#experiencia' },
-        { nombre: 'Sobre mí', href: '#sobre-mi' },
-        { nombre: 'Contacto', href: '#contacto' },
-      ]
-    : [
-        { nombre: 'Home', href: '#inicio' },
-        { nombre: 'Technologies', href: '#tecnologias' },
-        { nombre: 'Projects', href: '#proyectos' },
-        { nombre: 'Experience', href: '#experiencia' },
-        { nombre: 'About', href: '#sobre-mi' },
-        { nombre: 'Contact', href: '#contacto' },
-      ];
+const copy = chapters.map((chapter) => ({
+  ...chapter,
+  text: chapter[lang],
+}));
 ---
 
-<nav
-  id="navbar"
-  class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent"
->
-  <div class="max-w-7xl mx-auto px-6 py-5" id="nav-container">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a
-          href="#inicio"
-          id="nav-logo"
-          class="text-secondary z-50 font-bold text-2xl tracking-tighter"
-        >
-          JH<span id="logo-dot" class="text-blanco">.</span>
-        </a>
-
-        <span id="nav-meta" aria-hidden="true">SCRL <span id="nav-pct">000</span>%</span>
-      </div>
-
-      <div class="hidden md:flex items-center gap-1">
-        {
-          items.map((item) => (
-            <a
-              href={item.href}
-              class="nav-link text-gris-claro px-4 py-2 rounded-full text-sm font-medium transition-colors"
-            >
-              {item.nombre}
-            </a>
-          ))
-        }
-
-        <!-- Botón de idioma -->
-
-        <a
-          id="idioma"
-          href={switchPath}
-          class="ml-4 px-3 py-1 text-sm font-medium border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
-        >
-          {lang === 'es' ? 'EN' : 'ES'}
-        </a>
-
-        <button
-          id="theme-toggle"
-          class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
-          aria-label="Cambiar tema"
-        >
-          <span id="theme-icon">☀</span>
-        </button>
-
-        <button
-          id="music-toggle"
-          class="music-btn ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
-          aria-label="Música"
-        >
-          <span id="music-icon">♪</span>
-        </button>
-      </div>
-
-      <button
-        id="menuBtn"
-        class="md:hidden text-blanco p-2 z-50 focus:outline-none"
-        aria-label="Menu"
-      >
-        <div id="btn-icon" class="relative w-6 h-6">
-          <span class="linea absolute w-6 h-0.5 bg-blanco top-1"></span>
-          <span class="linea absolute w-6 h-0.5 bg-blanco top-3"></span>
-          <span class="linea absolute w-6 h-0.5 bg-blanco top-5"></span>
-        </div>
-      </button>
-    </div>
-  </div>
-</nav>
-
-<!-- Menú móvil -->
-<div
-  id="mobileMenu"
-  class="fixed inset-0 backdrop-blur-xl z-40 hidden md:hidden"
->
-  <div class="flex flex-col items-center justify-center h-full gap-6 px-6">
-    {
-      items.map((item) => (
-        <a
-          href={item.href}
-          class="mobile-link text-3xl font-bold text-gris-claro hover:text-blanco transition-colors"
-        >
-          {item.nombre}
-        </a>
-      ))
-    }
-    <a href={switchPath} class="mt-4 text-xl font-bold text-blanco">
-      {lang === 'es' ? 'English' : 'Español'}
+<header id="hud" class="hud">
+  <div class="hud__inner">
+    <a href="#inicio" class="hud__brand" aria-label="Juan Hoyos">
+      <span class="hud__monogram">JH<span class="hud__monogram-dot">.</span></span>
+      <span class="hud__status">
+        <span class="hud__act">ACT <span id="hud-act">01</span></span>
+        <span class="hud__tag" id="hud-tag">CORE</span>
+      </span>
     </a>
 
-    <button
-      id="theme-toggle-mobile"
-      class="ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
-      aria-label="Cambiar tema"
-    >
-      <span id="theme-icon-mobile">☀</span>
-    </button>
+    <nav class="hud__nav" aria-label={lang === 'es' ? 'Secciones' : 'Sections'}>
+      {
+        copy.map((chapter) => (
+          <a
+            class="hud__link"
+            href={`#${chapter.id}`}
+            data-hud-id={chapter.id}
+            aria-label={`${chapter.index} ${chapter.text.label}`}
+          >
+            <span class="hud__num">{chapter.index}</span>
+            <span class="hud__link-label">{chapter.text.short}</span>
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="hud__tools">
+      <button
+        id="sfx-toggle"
+        class="hud__tool hud__sfx"
+        type="button"
+        aria-pressed="false"
+        aria-label={lang === 'es' ? 'Activar efectos de sonido' : 'Toggle sound effects'}
+      >
+        <Icon name="mdi:volume-off" class="hud__icon" data-sfx-icon />
+        <span data-sfx-label>SFX</span>
+      </button>
+
+      <button
+        id="pulse-btn"
+        class="hud__tool hud__tool--pulse"
+        type="button"
+        aria-label={lang === 'es' ? 'Pulsar el mundo' : 'Pulse the world'}
+      >
+        <Icon name="mdi:lightning-bolt" class="hud__icon" />
+        <span>PULSE</span>
+      </button>
+
+      <a id="idioma" class="hud__tool hud__lang" href={switchPath} aria-label="Language">
+        {lang === 'es' ? 'EN' : 'ES'}
+      </a>
+
+      <button
+        id="theme-toggle"
+        class="hud__tool"
+        type="button"
+        aria-label={lang === 'es' ? 'Cambiar tema' : 'Toggle theme'}
+      >
+        <span id="theme-icon" aria-hidden="true">☀</span>
+      </button>
+
+      <button
+        id="music-toggle"
+        class="hud__tool music-btn"
+        type="button"
+        aria-label={lang === 'es' ? 'Música' : 'Music'}
+      >
+        <span id="music-icon">♪</span>
+      </button>
+    </div>
 
     <button
-      id="music-toggle-mobile"
-      class="music-btn-mobile ml-2 px-3 py-1 text-sm border border-borde text-gris-claro hover:text-blanco hover:border-blanco transition-colors rounded-full"
-      aria-label="Música"
+      id="menuBtn"
+      class="hud__menu"
+      type="button"
+      aria-expanded="false"
+      aria-controls="mobileMenu"
+      aria-label={lang === 'es' ? 'Abrir menú' : 'Open menu'}
     >
-      <span id="music-icon-mobile">♪</span>
+      <span></span><span></span>
     </button>
+  </div>
+</header>
+
+<div id="mobileMenu" class="hud-menu" aria-hidden="true">
+  <div class="hud-menu__inner">
+    <p class="hud-menu__kicker">INDEX // 01—06</p>
+
+    <nav class="hud-menu__nav" aria-label={lang === 'es' ? 'Capítulos' : 'Chapters'}>
+      {
+        copy.map((chapter) => (
+          <a
+            class="hud-menu__link"
+            href={`#${chapter.id}`}
+            data-menu-id={chapter.id}
+          >
+            <span class="hud-menu__num">{chapter.index}</span>
+            <span class="hud-menu__label">{chapter.text.label}</span>
+            <span class="hud-menu__tag">{chapter.text.tag}</span>
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="hud-menu__tools">
+      <button
+        id="sfx-toggle-mobile"
+        class="hud-menu__tool"
+        type="button"
+        aria-pressed="false"
+      >
+        <span data-sfx-label>SFX OFF</span>
+      </button>
+      <button id="pulse-btn-mobile" class="hud-menu__tool" type="button">
+        PULSE
+      </button>
+      <a class="hud-menu__tool" href={switchPath}>
+        {lang === 'es' ? 'ENGLISH' : 'ESPAÑOL'}
+      </a>
+      <button
+        id="theme-toggle-mobile"
+        class="hud-menu__tool"
+        type="button"
+        aria-label={lang === 'es' ? 'Cambiar tema' : 'Toggle theme'}
+      >
+        <span id="theme-icon-mobile" aria-hidden="true">☀</span>
+      </button>
+      <button
+        id="music-toggle-mobile"
+        class="hud-menu__tool music-btn-mobile"
+        type="button"
+        aria-label={lang === 'es' ? 'Música' : 'Music'}
+      >
+        <span id="music-icon-mobile">♪</span>
+      </button>
+    </div>
+
+    <p class="hud-menu__foot">
+      JH-2026 // COLOMBIA <span>·</span> AVAILABLE FOR WORK
+    </p>
   </div>
 </div>
 
@@ -139,286 +158,616 @@ const items =
 
 <script>
   import gsap from 'gsap';
+  import { initSfx, isSfxEnabled, toggleSfx } from '../util/sfx';
+  import { chapters } from '../data/chapters';
 
-  function initHeader() {
-    const nav = document.getElementById('navbar');
-    const navContainer = document.getElementById('nav-container');
-    const btn = document.getElementById('menuBtn');
-    const menu = document.getElementById('mobileMenu');
-    const mobileLinks = document.querySelectorAll('.mobile-link');
-    const navLinks = document.querySelectorAll('.nav-link');
-    const lineas = document.querySelectorAll('.linea');
+  const root = document.documentElement;
 
-    let isMenuOpen = false;
+  initSfx();
 
-    // ── Sección activa (mismo sistema de color que viajero/cursor) ──
-    const SECTION_COLORS: Record<string, string> = {
-      inicio: '#ffffff',
-      tecnologias: '#7b6ef5',
-      proyectos: '#5dcaa5',
-      experiencia: '#ef9f27',
-      'sobre-mi': '#ff8a6b',
-      contacto: '#4dc9e6',
-    };
-    let projectAccent: string | null = null;
-    window.addEventListener('project:accent', (e) => {
-      projectAccent = (e as CustomEvent<string>).detail;
-      applyActive();
+  const menu = document.getElementById('mobileMenu');
+  const menuBtn = document.getElementById('menuBtn');
+  const menuLinks = Array.from(
+    document.querySelectorAll<HTMLElement>('.hud-menu__link'),
+  );
+  const hudLinks = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-hud-id]'),
+  );
+  const actEl = document.getElementById('hud-act');
+  const tagEl = document.getElementById('hud-tag');
+  const lenis = () => (window as unknown as { __lenis?: any }).__lenis;
+
+  let menuOpen = false;
+  let activeId = 'inicio';
+  let menuTl: gsap.core.Timeline | null = null;
+
+  const monoAccent = () =>
+    getComputedStyle(root).getPropertyValue('--chapter-accent').trim() ||
+    (root.classList.contains('light') ? '#1a1a1a' : '#ffffff');
+
+  const setAccent = () => {
+    document.getElementById('hud')?.style.setProperty('--hud-accent', monoAccent());
+  };
+
+  const paintChapter = (id: string) => {
+    activeId = id;
+    hudLinks.forEach((link) => {
+      const on = link.dataset.hudId === id;
+      link.classList.toggle('is-active', on);
+      if (on) link.setAttribute('aria-current', 'true');
+      else link.removeAttribute('aria-current');
+    });
+    menuLinks.forEach((link) => {
+      const on = link.dataset.menuId === id;
+      link.classList.toggle('is-active', on);
     });
 
-    function sectionColor(id: string): string {
-      let hex = SECTION_COLORS[id] ?? SECTION_COLORS.inicio;
-      if (id === 'proyectos' && projectAccent) hex = projectAccent;
-      const light = document.documentElement.classList.contains('light');
-      return light && hex.toLowerCase() === '#ffffff' ? '#1a1a1a' : hex;
+    const chapter = chapters.find((item) => item.id === id);
+    if (chapter) {
+      if (actEl) actEl.textContent = chapter.index;
+      if (tagEl) tagEl.textContent = chapter[document.documentElement.lang === 'en' ? 'en' : 'es'].tag;
     }
+    setAccent();
+  };
 
-    function applyActive() {
-      let activeId = 'inicio';
-      for (const id of Object.keys(SECTION_COLORS)) {
-        const el = document.getElementById(id);
-        if (!el) continue;
-        const r = el.getBoundingClientRect();
-        if (
-          r.top <= window.innerHeight * 0.5 &&
-          r.bottom >= window.innerHeight * 0.5
-        ) {
-          activeId = id;
-          break;
-        }
-      }
-      const color = sectionColor(activeId);
-      navLinks.forEach((link) => {
-        const on = link.getAttribute('href') === `#${activeId}`;
-        link.classList.toggle('is-active', on);
-        if (on) link.style.setProperty('--section-color', color);
-        else link.style.removeProperty('--section-color');
-      });
-      mobileLinks.forEach((link) => {
-        const on = link.getAttribute('href') === `#${activeId}`;
-        link.classList.toggle('is-active', on);
-        if (on) link.style.setProperty('--section-color', color);
-        else link.style.removeProperty('--section-color');
-      });
-      const dot = document.getElementById('logo-dot');
-      if (dot) dot.style.color = color;
-      const pct = document.getElementById('nav-pct');
-      if (pct) {
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const p = max > 0 ? Math.round((window.scrollY / max) * 100) : 0;
-        pct.textContent = String(Math.min(100, Math.max(0, p))).padStart(3, '0');
-        pct.style.color = color;
-      }
+  const onChapter = (event: Event) => {
+    const detail = (event as CustomEvent<{ id: string }>).detail;
+    if (!detail?.id) return;
+    paintChapter(detail.id);
+  };
+
+  window.addEventListener('chapter:change', onChapter);
+  window.addEventListener('chapter:accent', setAccent);
+  window.addEventListener('theme:change', setAccent);
+
+  const initial = root.dataset.chapter || 'inicio';
+  paintChapter(initial);
+
+  // ── Tema ──────────────────────────────────────────────
+  const themeIcons = [
+    document.getElementById('theme-icon'),
+    document.getElementById('theme-icon-mobile'),
+  ];
+
+  const paintTheme = () => {
+    const light = root.classList.contains('light');
+    themeIcons.forEach((icon) => {
+      if (icon) icon.textContent = light ? '☾' : '☀';
+    });
+  };
+
+  const toggleTheme = () => {
+    const light = root.classList.toggle('light');
+    try {
+      localStorage.setItem('theme', light ? 'light' : 'dark');
+    } catch {
+      /* ignora */
     }
+    paintTheme();
+    window.dispatchEvent(new CustomEvent('theme:change'));
+  };
 
-    let sectionTicking = false;
-    const onSectionScroll = () => {
-      if (sectionTicking) return;
-      sectionTicking = true;
-      requestAnimationFrame(() => {
-        applyActive();
-        sectionTicking = false;
-      });
-    };
-    window.addEventListener('scroll', onSectionScroll, { passive: true });
-    applyActive();
+  paintTheme();
+  document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+  document
+    .getElementById('theme-toggle-mobile')
+    ?.addEventListener('click', toggleTheme);
 
-    const initLoad = () => {
-      const tl = gsap.timeline();
-      tl.from('#navbar', { y: -100, duration: 1.2, ease: 'expo.out' })
-        .from('#nav-logo', { opacity: 0, x: -20, duration: 0.5 }, '-=0.7')
-        .from(
-          '.nav-link',
-          {
-            opacity: 0,
-            y: -10,
-            stagger: 0.1,
-            duration: 0.5,
-            ease: 'power2.out',
-          },
-          '-=0.5',
-        )
-        .from(
-          '#idioma',
-          { opacity: 0, y: -10, duration: 0.5, ease: 'power2.out' },
-          '-=0.4',
-        )
-        .from(
-          '#theme-toggle',
-          { opacity: 0, y: -10, duration: 0.5, ease: 'power2.out' },
-          '-=0.4',
-        );
-    };
+  // ── SFX ───────────────────────────────────────────────
+  const sfxButtons = [
+    document.getElementById('sfx-toggle'),
+    document.getElementById('sfx-toggle-mobile'),
+  ];
 
-    const menuTl = gsap.timeline({ paused: true });
+  const paintSfx = () => {
+    const on = isSfxEnabled();
+    sfxButtons.forEach((button) => {
+      if (!button) return;
+      button.setAttribute('aria-pressed', on ? 'true' : 'false');
+      button.classList.toggle('is-on', on);
+      button
+        .querySelectorAll<HTMLElement>('[data-sfx-label]')
+        .forEach((label) => {
+          label.textContent = on ? 'SFX ON' : 'SFX OFF';
+        });
+    });
+  };
+
+  sfxButtons.forEach((button) =>
+    button?.addEventListener('click', () => {
+      toggleSfx();
+      paintSfx();
+    }),
+  );
+  paintSfx();
+
+  // ── Pulso ─────────────────────────────────────────────
+  const pulse = (event: Event) => {
+    window.dispatchEvent(new CustomEvent('world:pulse'));
+    const button = event.currentTarget as HTMLElement;
+    gsap.fromTo(
+      button,
+      { scale: 1 },
+      { scale: 0.9, duration: 0.08, yoyo: true, repeat: 1 },
+    );
+  };
+  document.getElementById('pulse-btn')?.addEventListener('click', pulse);
+  document.getElementById('pulse-btn-mobile')?.addEventListener('click', pulse);
+
+  // ── Menú móvil ────────────────────────────────────────
+  const openMenu = () => {
+    if (!menu || menuOpen) return;
+    menuOpen = true;
+    menu.style.display = 'flex';
+    menu.setAttribute('aria-hidden', 'false');
+    menuBtn?.setAttribute('aria-expanded', 'true');
+    menuBtn?.classList.add('is-open');
+    lenis()?.stop();
+
+    menuTl?.kill();
+    menuTl = gsap.timeline();
     menuTl
-      .to(menu, { display: 'block', opacity: 1, duration: 0.1 })
-      .from(menu, { yPercent: -100, duration: 0.6, ease: 'expo.inOut' })
-      .from(mobileLinks, {
-        y: 30,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.4,
-        ease: 'power3.out',
-      })
-      .to(lineas[1], { opacity: 0, duration: 0.2 }, '-=0.6')
-      .to(lineas[0], { rotation: 45, y: 8, duration: 0.2 }, '-=0.6')
-      .to(lineas[2], { rotation: -45, y: -8, duration: 0.2 }, '-=0.6');
-
-    btn?.addEventListener('click', () => {
-      if (!isMenuOpen) {
-        menuTl.play();
-      } else {
-        menuTl.reverse();
-      }
-      isMenuOpen = !isMenuOpen;
-    });
-
-    mobileLinks.forEach((link) => {
-      link.addEventListener('click', () => {
-        menuTl.reverse();
-        isMenuOpen = false;
-      });
-    });
-
-    window.addEventListener('scroll', () => {
-      const scrolled = window.scrollY > 50;
-      if (nav) nav.classList.toggle('is-scrolled', scrolled);
-      gsap.to(navContainer, {
-        paddingTop: scrolled ? '0.75rem' : '1.25rem',
-        paddingBottom: scrolled ? '0.75rem' : '1.25rem',
-        duration: 0.4,
-        overwrite: 'auto',
-      });
-    });
-
-    navLinks.forEach((link) => {
-      link.addEventListener('mouseenter', () => {
-        gsap.to(link, {
-          backgroundColor: 'rgba(74,85,104,0.1)',
-          y: -2,
-          duration: 0.3,
-        });
-      });
-      link.addEventListener('mouseleave', () => {
-        gsap.to(link, {
-          backgroundColor: 'transparent',
+      .fromTo(menu, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' })
+      .fromTo(
+        menuLinks,
+        { y: 34, opacity: 0 },
+        {
           y: 0,
-          duration: 0.3,
-        });
-      });
+          opacity: 1,
+          duration: 0.55,
+          stagger: 0.055,
+          ease: 'expo.out',
+        },
+        0.05,
+      )
+      .fromTo(
+        '.hud-menu__tools, .hud-menu__foot, .hud-menu__kicker',
+        { y: 18, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45, stagger: 0.06, ease: 'power2.out' },
+        0.2,
+      );
+  };
+
+  const closeMenu = () => {
+    if (!menu || !menuOpen) return;
+    menuOpen = false;
+    menu.setAttribute('aria-hidden', 'true');
+    menuBtn?.setAttribute('aria-expanded', 'false');
+    menuBtn?.classList.remove('is-open');
+    lenis()?.start();
+
+    menuTl?.kill();
+    menuTl = gsap.timeline({
+      onComplete: () => {
+        if (menu) menu.style.display = 'none';
+      },
     });
+    menuTl.to(menu, { opacity: 0, duration: 0.22, ease: 'power2.in' });
+  };
 
-    // Tema
-    const themeBtn = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const themeBtnMobile = document.getElementById('theme-toggle-mobile');
-    const themeIconMobile = document.getElementById('theme-icon-mobile');
+  menuBtn?.addEventListener('click', () => {
+    if (menuOpen) closeMenu();
+    else openMenu();
+  });
 
-    function toggleTheme() {
-      const isLight = document.documentElement.classList.toggle('light');
-      localStorage.setItem('theme', isLight ? 'light' : 'dark');
-      if (themeIcon) themeIcon.textContent = isLight ? '☾' : '☀';
-      if (themeIconMobile) themeIconMobile.textContent = isLight ? '☾' : '☀';
-      applyActive();
-    }
+  menuLinks.forEach((link) => link.addEventListener('click', closeMenu));
 
-    themeBtn?.addEventListener('click', toggleTheme);
-    themeBtnMobile?.addEventListener('click', toggleTheme);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menuOpen) closeMenu();
+  });
 
-    // Pills magnéticos (mismo lenguaje que el botón de Contacto)
-    if (window.matchMedia('(pointer: fine)').matches) {
-      [themeBtn, document.getElementById('idioma')].forEach((el) => {
-        if (!el) return;
-        const mx = gsap.quickTo(el, 'x', { duration: 0.4, ease: 'power3.out' });
-        const my = gsap.quickTo(el, 'y', { duration: 0.4, ease: 'power3.out' });
-        el.addEventListener('pointermove', (e) => {
-          const r = el.getBoundingClientRect();
-          mx((e.clientX - r.left - r.width / 2) * 0.2);
-          my((e.clientY - r.top - r.height / 2) * 0.2);
+  // ── Intro ─────────────────────────────────────────────
+  const intro = () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const tl = gsap.timeline({ delay: 0.1 });
+    tl.fromTo(
+      '.hud__inner',
+      { y: -28, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1, ease: 'expo.out' },
+    )
+      .fromTo(
+        '.hud__link',
+        { y: -10, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power2.out' },
+        0.35,
+      )
+      .fromTo(
+        '.hud__tools',
+        { y: -8, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45, ease: 'power2.out' },
+        0.45,
+      );
+  };
+
+  const loader = document.getElementById('loader');
+  if (!loader || loader.style.display === 'none') {
+    intro();
+  } else {
+    window.addEventListener('loader:done', intro, { once: true });
+  }
+
+  // Magnetic pills
+  if (window.matchMedia('(pointer: fine)').matches) {
+    document
+      .querySelectorAll<HTMLElement>('.hud__tool')
+      .forEach((element) => {
+        const x = gsap.quickTo(element, 'x', {
+          duration: 0.35,
+          ease: 'power3.out',
         });
-        el.addEventListener('pointerleave', () => {
-          mx(0);
-          my(0);
+        const y = gsap.quickTo(element, 'y', {
+          duration: 0.35,
+          ease: 'power3.out',
+        });
+        element.addEventListener('pointermove', (event) => {
+          const rect = element.getBoundingClientRect();
+          x((event.clientX - rect.left - rect.width / 2) * 0.12);
+          y((event.clientY - rect.top - rect.height / 2) * 0.18);
+        });
+        element.addEventListener('pointerleave', () => {
+          x(0);
+          y(0);
         });
       });
-    }
-
-    initLoad();
   }
-
-  function applyTheme() {
-    const saved = localStorage.getItem('theme');
-    const icon = document.getElementById('theme-icon');
-    const iconMobile = document.getElementById('theme-icon-mobile');
-    if (saved === 'light') {
-      document.documentElement.classList.add('light');
-      if (icon) icon.textContent = '☾';
-      if (iconMobile) iconMobile.textContent = '☾';
-    } else {
-      document.documentElement.classList.remove('light');
-      if (icon) icon.textContent = '☀';
-      if (iconMobile) iconMobile.textContent = '☀';
-    }
-  }
-
-  applyTheme();
-  initHeader();
-  document.addEventListener('astro:page-load', () => {
-    applyTheme();
-    initHeader();
-  });
 </script>
 
 <style>
-  /* Prevenir saltos visuales antes de que cargue GSAP */
-  #mobileMenu {
-    opacity: 0;
-    background-color: color-mix(in srgb, var(--color-neutro) 95%, transparent);
+  .hud {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    padding: 0.75rem clamp(0.75rem, 2vw, 1.5rem);
+    pointer-events: none;
+    --hud-accent: var(--chapter-accent);
   }
 
-  #navbar.is-scrolled {
-    background-color: color-mix(in srgb, var(--color-blanco) 6%, transparent);
-    border-bottom-color: color-mix(in srgb, var(--color-blanco) 10%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+  .hud__inner {
+    pointer-events: auto;
+    width: min(100%, 90rem);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.55rem 0.7rem 0.55rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 9%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-neutro) 72%, transparent);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 12px 40px -28px rgba(0, 0, 0, 0.9);
   }
 
-  .nav-link {
-    transition: color 0.3s ease;
-  }
-
-  .nav-link:hover:not(.is-active) {
+  .hud__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
     color: var(--color-blanco);
+    text-decoration: none;
+    flex: none;
   }
 
-  .nav-link.is-active,
-  .mobile-link.is-active {
-    color: var(--section-color);
+  .hud__monogram {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: -0.04em;
   }
 
-  .nav-link.is-active::before {
-    content: '•';
-    margin-right: 5px;
-    color: var(--section-color);
+  .hud__monogram-dot {
+    color: var(--hud-accent);
+    text-shadow: 0 0 14px color-mix(in srgb, var(--hud-accent) 70%, transparent);
   }
 
-  #nav-meta {
+  .hud__status {
     display: none;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 10px;
+    padding-left: 0.65rem;
+    border-left: 1px solid color-mix(in srgb, var(--color-blanco) 14%, transparent);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.45;
+    color: var(--color-gris-oscuro);
+  }
+
+  .hud__act {
+    display: block;
+    color: var(--hud-accent);
+  }
+
+  .hud__tag {
+    display: block;
+  }
+
+  .hud__nav {
+    display: none;
+    align-items: center;
+    gap: 0.1rem;
+    margin-left: auto;
+  }
+
+  .hud__link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.28rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 999px;
+    color: var(--color-gris-oscuro);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition:
+      color 0.3s ease,
+      background 0.3s ease;
+  }
+
+  .hud__num {
+    font-size: 7px;
+    opacity: 0.5;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hud__link:hover {
+    color: var(--color-blanco);
+    background: color-mix(in srgb, var(--color-blanco) 5%, transparent);
+  }
+
+  .hud__link.is-active {
+    color: var(--hud-accent);
+    background: color-mix(in srgb, var(--hud-accent) 8%, transparent);
+  }
+
+  .hud__tools {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+  }
+
+  .hud__link.is-active + .hud__tools {
+    margin-left: 0;
+  }
+
+  .hud__tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
+    height: 1.9rem;
+    min-width: 1.9rem;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 11%, transparent);
+    background: transparent;
+    color: var(--color-gris-oscuro);
+    font-family: var(--font-mono);
+    font-size: 8px;
     letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease;
+  }
+
+  .hud__tool:hover {
+    color: var(--color-blanco);
+    border-color: color-mix(in srgb, var(--color-blanco) 30%, transparent);
+  }
+
+  .hud__tool.is-on {
+    color: var(--hud-accent);
+    border-color: color-mix(in srgb, var(--hud-accent) 42%, transparent);
+  }
+
+  .hud__tool--pulse {
+    color: var(--hud-accent);
+    border-color: color-mix(in srgb, var(--hud-accent) 30%, transparent);
+  }
+
+  .hud__icon {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .hud__menu {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-left: auto;
+    padding: 0 0.55rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 12%, transparent);
+    background: transparent;
+  }
+
+  .hud__menu span {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: var(--color-blanco);
+    transition:
+      transform 0.3s ease,
+      opacity 0.3s ease;
+  }
+
+  .hud__menu.is-open span:first-child {
+    transform: translateY(3px) rotate(45deg);
+  }
+
+  .hud__menu.is-open span:last-child {
+    transform: translateY(-3px) rotate(-45deg);
+  }
+
+  /* ── Menú móvil ── */
+  .hud-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 48;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 5.5rem 1.25rem 2rem;
+    background:
+      radial-gradient(
+        70% 60% at 50% 30%,
+        color-mix(in srgb, var(--hud-accent, #fff) 10%, transparent),
+        transparent 70%
+      ),
+      color-mix(in srgb, var(--color-neutro) 97%, transparent);
+    backdrop-filter: blur(26px);
+    -webkit-backdrop-filter: blur(26px);
+    opacity: 0;
+  }
+
+  .hud-menu__inner {
+    width: min(100%, 34rem);
+    max-height: 100%;
+    overflow-y: auto;
+  }
+
+  .hud-menu__kicker {
+    margin: 0 0 1rem;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.24em;
     text-transform: uppercase;
     color: var(--color-gris-oscuro);
   }
 
-  #nav-pct {
-    font-variant-numeric: tabular-nums;
+  .hud-menu__nav {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid color-mix(in srgb, var(--color-blanco) 12%, transparent);
   }
 
-  @media (min-width: 1024px) {
-    #nav-meta {
-      display: inline;
+  .hud-menu__link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    padding: 0.8rem 0.2rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-blanco) 9%, transparent);
+    color: var(--color-gris-claro);
+    text-decoration: none;
+    transition: color 0.25s ease;
+  }
+
+  .hud-menu__link:hover,
+  .hud-menu__link.is-active {
+    color: var(--hud-accent);
+  }
+
+  .hud-menu__num {
+    width: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-gris-oscuro);
+  }
+
+  .hud-menu__label {
+    font-family: var(--font-display);
+    font-size: clamp(1.55rem, 7vw, 2.3rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .hud-menu__tag {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .hud-menu__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1.5rem;
+  }
+
+  .hud-menu__tool {
+    padding: 0.55rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 13%, transparent);
+    background: transparent;
+    color: var(--color-gris-claro);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+
+  .hud-menu__foot {
+    margin: 1.5rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .hud-menu__foot span {
+    color: var(--hud-accent);
+  }
+
+  @media (min-width: 640px) {
+    .hud__status {
+      display: block;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .hud__tools {
+      display: flex;
+    }
+
+    .hud__menu {
+      margin-left: 0;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .hud__nav {
+      display: flex;
+      margin-left: auto;
+    }
+
+    .hud__tools {
+      margin-left: 0.35rem;
+    }
+
+    .hud__menu {
+      display: none;
+    }
+
+    .hud-menu {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hud__inner {
+      gap: 0.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hud__menu span,
+    .hud__link,
+    .hud__tool,
+    .hud-menu__link {
+      transition: none;
     }
   }
 </style>

@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import CursorGota from '../components/CursorGota.astro';
 import Loader from '../components/Loader.astro';
+import ScrollWorld from '../components/ScrollWorld.astro';
 
 interface Props {
   title?: string;
@@ -78,9 +79,27 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     >
 
     <script is:inline>
+      // Tema y estado JS antes del primer paint.
+      document.documentElement.classList.add('js');
+      (function () {
+        try {
+          if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('light');
+          }
+        } catch (error) {
+          /* ignora */
+        }
+      })();
       // Arrancar siempre desde el tope (el loader revela la página desde arriba)
       if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       window.scrollTo(0, 0);
+      // Red de seguridad: si el bundle falla, no dejar el Hero oculto.
+      window.setTimeout(function () {
+        var hero = document.getElementById('inicio');
+        if (hero && hero.hasAttribute('data-hero-pending')) {
+          hero.removeAttribute('data-hero-pending');
+        }
+      }, 5000);
       // La barra de scroll queda oculta mientras el loader esté activo.
       window.addEventListener('loader:done', () => {
         document.documentElement.classList.remove('is-loading');
@@ -89,8 +108,41 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
   </head>
 
   <body>
+    <a class="skip-link" href="#main-content">
+      {Astro.url.pathname.startsWith('/en') ? 'Skip to content' : 'Saltar al contenido'}
+    </a>
+    <ScrollWorld />
+    <div class="scroll-progress" aria-hidden="true">
+      <span id="scroll-progress-bar" class="scroll-progress__bar"></span>
+    </div>
+    <div class="grain" aria-hidden="true"></div>
     <Loader />
     <slot />
     <CursorGota />
   </body>
 </html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 9999;
+    transform: translateY(-160%);
+    padding: 0.75rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-blanco);
+    background: var(--color-neutro);
+    color: var(--color-blanco);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: transform 0.2s ease;
+  }
+
+  .skip-link:focus-visible {
+    transform: translateY(0);
+    outline: none;
+  }
+</style>

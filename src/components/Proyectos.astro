@@ -1,7 +1,8 @@
 ---
 import { Icon } from 'astro-icon/components';
-import SceneIndex from './SceneIndex.astro';
 import { projects } from '../data/projects';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
 
 interface Props {
   title: string;
@@ -9,386 +10,589 @@ interface Props {
   cta: string;
   close: string;
 }
-const { title, descriptions, cta, close } = Astro.props;
 
-const projectsWithDesc = projects.map((p) => ({
-  ...p,
-  description: descriptions[p.id] ?? '',
+const { title, descriptions, cta, close } = Astro.props;
+const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
+const t = lang === 'en' ? en : es;
+
+const projectsWithDesc = projects.map((project, index) => ({
+  ...project,
+  index,
+  description: descriptions[project.id] ?? '',
 }));
 ---
 
-<section id="proyectos" class="relative overflow-hidden">
-  <div class="projects-glow" aria-hidden="true"></div>
-  <SceneIndex index="03" />
+<section id="proyectos" class="works">
+  <div class="works-glow" aria-hidden="true"></div>
 
-  <div class="projects-pin">
-    <div class="projects-head max-w-7xl mx-auto w-full px-6">
-      <h2
-        class="text-blanco text-start text-4xl font-bold project-title-anim overflow-hidden"
-      >
-        {title}
-      </h2>
+  <div class="works-head">
+    <div>
+      <span class="act-kicker">{t.works.kicker}</span>
+      <h2 class="works-title" id="works-title">{title}</h2>
     </div>
 
-    <div class="projects-track-wrap">
-      <div class="projects-track">
-        {
-          projectsWithDesc.map((project) => (
-            <article class="project-panel" data-color={project.color}>
-              <div class="project-panel__inner group opacity-0">
-                <div class="project-panel__media relative h-72 md:h-[22rem] overflow-hidden bg-black border border-borde">
-                  <img
-                    src={project.image.src}
-                    alt={project.title}
-                    class="project-img w-full h-full object-cover"
-                    draggable="false"
-                  />
+    <div class="works-readout">
+      <span class="works-readout__label">{t.works.now_showing}</span>
+      <span class="works-readout__name" id="works-current-title">
+        {projectsWithDesc[0].title}
+      </span>
+      <span class="works-readout__count">
+        <span id="works-current">01</span>
+        <span class="works-readout__slash">/</span>
+        {String(projectsWithDesc.length).padStart(2, '0')}
+      </span>
+    </div>
+  </div>
 
-                  <div
-                    class="project-panel__accent absolute top-0 left-0 h-full w-1.5"
-                    style={`background:${project.color}`}
-                  />
+  <div class="works-viewport" id="works-viewport">
+    <div class="works-track" id="works-track">
+      {
+        projectsWithDesc.map((project) => (
+          <article class="work" data-index={project.index}>
+            <button
+              type="button"
+              class="work__media"
+              data-case
+              aria-label={`${t.works.open_case}: ${project.title}`}
+            >
+              <img
+                src={project.image.src}
+                alt={project.title}
+                class="work__img"
+                draggable="false"
+              />
+              <span class="work__ghost" aria-hidden="true">
+                {String(project.index + 1).padStart(2, '0')}
+              </span>
+              <span class="work__scan" aria-hidden="true" />
+              <span class="work__veil" aria-hidden="true" />
+              <span class="work__open">
+                <Icon name="mdi:arrow-expand" class="work__open-icon" />
+                {cta}
+              </span>
+            </button>
 
-                  <div class="project-overlay absolute inset-0 bg-black/25 flex flex-col items-center justify-center gap-4 transition-all duration-300 md:opacity-0 md:group-hover:opacity-100">
-                    <button
-                      type="button"
-                      data-case
-                      class="project-panel__cta flex items-center gap-2 px-6 py-3 border border-white/40 text-white font-medium backdrop-blur-md bg-black/35 hover:bg-black/50 transition-colors"
-                    >
-                      <Icon name="mdi:arrow-expand" class="w-5 h-5" />
-                      {cta}
-                    </button>
+            <div class="work__row">
+              <div class="work__info">
+                <div class="work__meta">
+                  <span>{String(project.index + 1).padStart(2, '0')}</span>
+                  <span>{project.year}</span>
+                  <span class="work__status">{project.status}</span>
+                </div>
+                <h3 class="work__title">{project.title}</h3>
+                <p class="work__desc">{project.description}</p>
+              </div>
 
-                    <div class="flex gap-4">
-                      <a
-                        data-demo
-                        href={project.demo}
-                        target="_blank"
-                        rel="noopener"
-                        class="p-3 bg-white rounded-full text-black hover:scale-110 transition-transform flex items-center gap-2 px-5 md:px-3"
-                      >
-                        <Icon name="mdi:external-link" class="w-6 h-6" />
-                        <span class="md:hidden font-medium">Demo</span>
-                      </a>
-                      <a
-                        data-code
-                        href={project.code}
-                        target="_blank"
-                        rel="noopener"
-                        class="p-3 bg-black/40 backdrop-blur-md rounded-full text-white hover:scale-110 hover:bg-black/55 transition-transform border border-white/40 flex items-center gap-2 px-5 md:px-3"
-                      >
-                        <Icon name="mdi:github" class="w-6 h-6" />
-                        <span class="md:hidden font-medium">Código</span>
-                      </a>
-                    </div>
-                  </div>
+              <div class="work__aside">
+                <div class="work__tags">
+                  {project.tags.map((tag) => (
+                    <span>{tag}</span>
+                  ))}
                 </div>
 
-                <div class="project-panel__info p-6 flex flex-col gap-3">
-                  <h3 class="project-panel__title text-2xl text-blanco font-bold">
-                    {project.title}
-                  </h3>
-                  <p class="project-panel__desc text-gris-claro line-clamp-2">
-                    {project.description}
-                  </p>
-                  <div class="project-panel__tags flex flex-wrap gap-2 mt-auto">
-                    {project.tags.map((tag) => (
-                      <span class="px-3 py-1 text-xs font-medium text-gris-claro bg-blanco/10 rounded-md border border-borde">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                <div class="work__links">
+                  <a
+                    data-demo
+                    href={project.demo}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`Demo ${project.title}`}
+                  >
+                    <Icon name="mdi:external-link" />
+                    <span>{t.works.demo}</span>
+                  </a>
+                  <a
+                    data-code
+                    href={project.code}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`${t.works.code} ${project.title}`}
+                  >
+                    <Icon name="mdi:github" />
+                    <span>{t.works.code}</span>
+                  </a>
                 </div>
               </div>
-            </article>
-          ))
-        }
-      </div>
+            </div>
+          </article>
+        ))
+      }
     </div>
+  </div>
+
+  <div class="works-foot">
+    <div class="works-progress" aria-hidden="true">
+      <span class="works-progress__fill" id="works-fill"></span>
+    </div>
+
+    <div class="works-steps">
+      {
+        projectsWithDesc.map((project) => (
+          <button
+            class:list={['works-step', { 'is-active': project.index === 0 }]}
+            type="button"
+            data-step={project.index}
+            aria-label={project.title}
+          >
+            {String(project.index + 1).padStart(2, '0')}
+          </button>
+        ))
+      }
+    </div>
+
+    <span class="works-hint">{t.works.hint}</span>
   </div>
 </section>
 
 <canvas id="project-gl" class="project-gl" aria-hidden="true"></canvas>
 
+<div id="project-case" class="case" aria-hidden="true">
+  <div class="case__backdrop" data-case-close></div>
+
   <div
-    id="project-case"
-    class="project-case"
-    aria-hidden="true"
+    class="case__dialog"
     role="dialog"
     aria-modal="true"
-    aria-label={title}
+    aria-labelledby="case-title"
+    tabindex="-1"
   >
-    <div class="project-case__backdrop" data-case-close></div>
+    <button
+      type="button"
+      data-case-close
+      class="case__close"
+      aria-label={close}
+    >
+      <Icon name="mdi:close" class="case__close-icon" />
+    </button>
 
-    <div class="project-case__dialog">
-      <button
-        type="button"
-        data-case-close
-        aria-label={close}
-        class="project-case__close"
-      >
-        <Icon name="mdi:close" class="w-5 h-5" />
-      </button>
+    <div class="case__media">
+      <img id="case-image" src="" alt="" />
+      <span class="case__index" id="case-index">01</span>
+      <span class="case__scan" aria-hidden="true"></span>
+    </div>
 
-      <div class="project-case__media"></div>
+    <div class="case__body">
+      <span class="case__kicker" id="case-kicker">{t.works.kicker}</span>
+      <h3 class="case__title" id="case-title"></h3>
+      <p class="case__desc" id="case-desc"></p>
+      <div class="case__tags" id="case-tags"></div>
 
-      <div class="project-case__body">
-        <h3 class="project-case__title text-3xl font-bold text-blanco"></h3>
-        <p class="project-case__desc text-gris-claro leading-relaxed"></p>
-        <div class="project-case__tags flex flex-wrap gap-2"></div>
-
-        <div class="flex flex-wrap gap-4 mt-2">
-          <a
-            class="project-case__demo flex items-center gap-2 px-6 py-3 bg-blanco text-neutro rounded-full hover:scale-[1.03] transition-transform"
-            target="_blank"
-            rel="noopener"
-          >
-            <Icon name="mdi:external-link" class="w-5 h-5" />
-            Demo
-          </a>
-          <a
-            class="project-case__code flex items-center gap-2 px-6 py-3 backdrop-blur-md rounded-full hover:scale-[1.03] transition-transform"
-            target="_blank"
-            rel="noopener"
-          >
-            <Icon name="mdi:github" class="w-5 h-5" />
-            Código
-          </a>
+      <div class="case__meta">
+        <div>
+          <span>{t.works.year}</span>
+          <strong id="case-year"></strong>
         </div>
+        <div>
+          <span>{t.works.status}</span>
+          <strong id="case-status"></strong>
+        </div>
+        <div>
+          <span>{t.works.stack}</span>
+          <strong id="case-stack"></strong>
+        </div>
+      </div>
+
+      <div class="case__links">
+        <a id="case-demo" target="_blank" rel="noopener">
+          <Icon name="mdi:external-link" class="case__link-icon" />
+          {t.works.demo}
+        </a>
+        <a id="case-code" target="_blank" rel="noopener">
+          <Icon name="mdi:github" class="case__link-icon" />
+          {t.works.code}
+        </a>
       </div>
     </div>
   </div>
+</div>
 
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { Flip } from 'gsap/Flip';
-  import { animateTitleChars } from '../util/animations';
+  import { splitMaskWords } from '../util/text';
   import { createProjectDistortion } from '../util/projectDistortion';
 
-  gsap.registerPlugin(ScrollTrigger, Flip);
-
+  gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
+
+  let ctx: gsap.Context | undefined;
+  let inited = false;
+  let distortion: ReturnType<typeof createProjectDistortion> | null = null;
+  let removeCaseListeners: (() => void) | undefined;
 
   function initProjects() {
     const section = document.getElementById('proyectos');
-    if (!section || section.dataset.inited === 'true') return;
-    section.dataset.inited = 'true';
+    if (!section || inited) return;
+    inited = true;
 
-    const cleanups = [];
-    const onCleanup = (fn) => cleanups.push(fn);
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    const projects = Array.from(section.querySelectorAll<HTMLElement>('.work'));
+    const viewport = section.querySelector<HTMLElement>('#works-viewport');
+    const track = section.querySelector<HTMLElement>('#works-track');
+    const fill = document.getElementById('works-fill');
+    const current = document.getElementById('works-current');
+    const currentTitle = document.getElementById('works-current-title');
+    const steps = Array.from(
+      section.querySelectorAll<HTMLElement>('[data-step]'),
+    );
+    const titleWords = splitMaskWords(document.getElementById('works-title'));
+    const glCanvas = document.getElementById(
+      'project-gl',
+    ) as HTMLCanvasElement | null;
+    const caseEl = document.getElementById('project-case');
+    if (caseEl) document.body.appendChild(caseEl);
+    const caseDialog = caseEl?.querySelector<HTMLElement>('.case__dialog');
+    const caseImage = document.getElementById(
+      'case-image',
+    ) as HTMLImageElement | null;
+    const caseTitle = document.getElementById('case-title');
+    const caseDesc = document.getElementById('case-desc');
+    const caseTags = document.getElementById('case-tags');
+    const caseYear = document.getElementById('case-year');
+    const caseStatus = document.getElementById('case-status');
+    const caseStack = document.getElementById('case-stack');
+    const caseIndex = document.getElementById('case-index');
+    const caseDemo = document.getElementById(
+      'case-demo',
+    ) as HTMLAnchorElement | null;
+    const caseCode = document.getElementById(
+      'case-code',
+    ) as HTMLAnchorElement | null;
+    const caseClose = caseEl?.querySelector<HTMLButtonElement>('.case__close');
+    const main = document.querySelector('main');
+    const hud = document.getElementById('hud');
+    const skipLink = document.querySelector<HTMLElement>('.skip-link');
+    const lenis = () => (window as unknown as { __lenis?: any }).__lenis;
+    let lastFocus: HTMLElement | null = null;
+    let caseOpen = false;
+    let activeIndex = -1;
+    let activeTrigger: ScrollTrigger | undefined;
 
-    const ctx = gsap.context(() => {
-      const track = section.querySelector('.projects-track');
-      const panels = Array.from(
-        section.querySelectorAll('.project-panel'),
+    if (!viewport || !track) return;
+
+    const setActive = (index: number, animate = true) => {
+      if (index === activeIndex) return;
+      activeIndex = index;
+      const card = projects[index];
+      if (!card) return;
+      projects.forEach((project, i) => {
+        project.classList.toggle('is-active', i === index);
+      });
+      steps.forEach((step, i) =>
+        step.classList.toggle('is-active', i === index),
       );
+      if (current) current.textContent = String(index + 1).padStart(2, '0');
+      if (currentTitle)
+        currentTitle.textContent =
+          card.querySelector('.work__title')?.textContent ?? '';
 
-      const getDistance = () =>
-        Math.max(0, track.scrollWidth - window.innerWidth);
-
-      // ── Revelado del título ──────────────────────────────
-      animateTitleChars('.project-title-anim');
-
-      // ── Aparición de las tarjetas ─────────────────────────
-      const innerEls = panels.map((p) =>
-        p.querySelector('.project-panel__inner'),
-      );
-
-      gsap.fromTo(
-        innerEls,
-        { y: 44, opacity: 0, filter: 'blur(8px)' },
-        {
-          y: 0,
-          opacity: 1,
-          filter: 'blur(0px)',
-          duration: 1.05,
-          stagger: 0.13,
-          ease: 'power2.out',
-          scrollTrigger: {
-          trigger: track,
-          start: 'left 80%',
-          toggleActions: 'play none none reset',
-
-          },
-        },
-      );
-
-      // ── Color ambiente por proyecto ────────────────────────
-      let currentActive = -1;
-
-      function colorToHex(panel) {
-        const accent = panel.querySelector('.project-panel__accent');
-        if (!accent) return '#5dcaa5';
-        const rgb = getComputedStyle(accent).backgroundColor;
-        const m = rgb.match(/\d+/g);
-        if (!m) return '#5dcaa5';
-        return (
-          '#' +
-          m
-            .slice(0, 3)
-            .map((n) => (+n).toString(16).padStart(2, '0'))
-            .join('')
+      if (!reduced && animate) {
+        const media = card.querySelector<HTMLElement>('.work__media');
+        const info = card.querySelector<HTMLElement>('.work__info');
+        const aside = card.querySelector<HTMLElement>('.work__aside');
+        const moving = [info, aside].filter(Boolean) as HTMLElement[];
+        gsap.killTweensOf(
+          [media, ...moving].filter(Boolean),
+          'opacity,scale,y',
         );
+        if (media) {
+          gsap.fromTo(
+            media,
+            { opacity: 0.25, scale: 0.96 },
+            { opacity: 1, scale: 1, duration: 0.9, ease: 'expo.out' },
+          );
+        }
+        if (moving.length) {
+          gsap.fromTo(
+            moving,
+            { y: 32, scale: 0.97, opacity: 0 },
+            {
+              y: 0,
+              scale: 1,
+              opacity: 1,
+              duration: 0.7,
+              stagger: 0.08,
+              ease: 'power3.out',
+            },
+          );
+        }
       }
+    };
 
-      function updateActive() {
-        const center = window.innerWidth / 2;
-        let best = 0;
-        let bestD = Infinity;
-
-        panels.forEach((p, i) => {
-          const r = p.getBoundingClientRect();
-          const d = Math.abs(r.left + r.width / 2 - center);
-          if (d < bestD) {
-            bestD = d;
-            best = i;
-          }
+    ctx = gsap.context(() => {
+      if (!reduced) {
+        gsap.from(titleWords, {
+          yPercent: 115,
+          duration: 0.95,
+          stagger: 0.08,
+          ease: 'expo.out',
+          scrollTrigger: {
+            trigger: '.works-head',
+            start: 'top 92%',
+            end: 'top 54%',
+            scrub: 1,
+          },
         });
 
-        if (best === currentActive) return;
-        currentActive = best;
+        gsap.from('.works-readout', {
+          opacity: 0,
+          y: 44,
+          x: 22,
+          scale: 0.96,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.works-head',
+            start: 'top 92%',
+            end: 'top 58%',
+            scrub: 1,
+          },
+        });
 
-        panels.forEach((p, i) => p.classList.toggle('is-active', i === best));
+        // ── Entrada de las cards: wipe de la imagen, slide lateral, número fantasma
+        //    y textos en cascada. Se reproduce al llegar y se revierte al subir. ──
+        const medias = projects
+          .map((project) => project.querySelector<HTMLElement>('.work__media'))
+          .filter(Boolean) as HTMLElement[];
+        const ghosts = projects
+          .map((project) => project.querySelector<HTMLElement>('.work__ghost'))
+          .filter(Boolean) as HTMLElement[];
+        const dx = window.innerWidth >= 1024 ? 150 : 48;
+        const entrance = gsap.timeline({ paused: true });
 
-        const panel = panels[best];
-        section.style.setProperty('--project-accent', panel.dataset.color);
+        entrance
+          .fromTo(
+            medias,
+            { clipPath: 'inset(0% 100% 0% 0% round 14px)' },
+            {
+              clipPath: 'inset(0% 0% 0% 0% round 14px)',
+              duration: 1.5,
+              ease: 'expo.inOut',
+              stagger: 0.14,
+              clearProps: 'clipPath',
+            },
+            0,
+          )
+          .from(
+            projects,
+            {
+              x: dx,
+              rotate: (projectIndex) => (projectIndex % 2 === 0 ? 1.4 : -1.4),
+              duration: 1.5,
+              ease: 'expo.out',
+              stagger: 0.14,
+              clearProps: 'transform',
+            },
+            0,
+          )
+          .from(
+            ghosts,
+            {
+              xPercent: -50,
+              opacity: 0,
+              duration: 1.3,
+              ease: 'expo.out',
+              stagger: 0.14,
+            },
+            0.3,
+          );
 
-        window.dispatchEvent(
-          new CustomEvent('project:accent', { detail: colorToHex(panel) }),
+        projects.forEach((project, projectIndex) => {
+          const lines = project.querySelectorAll(
+            '.work__meta, .work__title, .work__desc, .work__tags span, .work__links a',
+          );
+          entrance.from(
+            lines,
+            {
+              y: 28,
+              opacity: 0,
+              duration: 0.85,
+              ease: 'power3.out',
+              stagger: 0.045,
+            },
+            0.55 + projectIndex * 0.14,
+          );
+        });
+
+        entrance.from(
+          '.works-foot',
+          { y: 26, opacity: 0, duration: 0.8, ease: 'power3.out' },
+          0.7,
         );
+
+        ScrollTrigger.create({
+          trigger: section,
+          start: window.innerWidth >= 1024 ? 'top 68%' : 'top 82%',
+          animation: entrance,
+          toggleActions: 'play none none reverse',
+        });
       }
 
-      const trackWrap = section.querySelector('.projects-track-wrap');
-      trackWrap.addEventListener('scroll', updateActive, { passive: true });
-      updateActive();
+      if (reduced) setActive(0);
 
-      // ── Desktop: scroll horizontal anclado (pin) ───────────
+      // ── Desktop: galería horizontal anclada ──
       const mm = gsap.matchMedia();
 
       mm.add(
         '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
         () => {
           section.classList.add('is-pinned');
+          const distance = () =>
+            Math.max(0, track.scrollWidth - viewport.clientWidth);
 
-          gsap.to(track, {
-            x: () => -getDistance(),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top top',
-              end: () => '+=' + getDistance(),
-              pin: true,
-              scrub: 1,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-              snap: {
-                snapTo: (value) =>
-                  panels.length > 1
-                    ? gsap.utils.snap(1 / (panels.length - 1), value)
-                    : 0,
-                duration: { min: 0.2, max: 0.6 },
-                delay: 0.05,
-                ease: 'power1.inOut',
-              },
-              onUpdate: updateActive,
-              onRefresh: updateActive,
+          const nearestIndex = () => {
+            const center =
+              viewport.getBoundingClientRect().left + viewport.clientWidth / 2;
+            let best = 0;
+            let bestDistance = Infinity;
+            projects.forEach((project, index) => {
+              const rect = project.getBoundingClientRect();
+              const gap = Math.abs(rect.left + rect.width / 2 - center);
+              if (gap < bestDistance) {
+                bestDistance = gap;
+                best = index;
+              }
+            });
+            return best;
+          };
+
+          activeTrigger = ScrollTrigger.create({
+            trigger: section,
+            start: 'top top',
+            end: () => `+=${Math.max(1, distance())}`,
+            pin: true,
+            scrub: 1,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              gsap.set(track, { x: -distance() * self.progress });
+              if (fill) fill.style.transform = `scaleX(${self.progress})`;
+              setActive(nearestIndex());
+            },
+            onRefresh: (self) => {
+              gsap.set(track, { x: -distance() * self.progress });
+              setActive(nearestIndex(), false);
             },
           });
 
-          updateActive();
+          gsap.set(track, { x: 0 });
+          setActive(0, false);
+
+          const onStepClick = (event: Event) => {
+            const step = event.currentTarget as HTMLElement;
+            const index = Number(step.dataset.step ?? 0);
+            if (!activeTrigger) return;
+            const project = projects[index];
+            if (!project) return;
+            const span = activeTrigger.end - activeTrigger.start;
+            const center =
+              viewport.getBoundingClientRect().left + viewport.clientWidth / 2;
+            const rect = project.getBoundingClientRect();
+            const delta = center - (rect.left + rect.width / 2);
+            const progress = gsap.utils.clamp(
+              0,
+              1,
+              activeTrigger.progress - delta / Math.max(1, distance()),
+            );
+            const top = activeTrigger.start + progress * span;
+            const instance = lenis();
+            if (instance) instance.scrollTo(top + 1, { duration: 1.1 });
+            else window.scrollTo({ top: top + 1, behavior: 'smooth' });
+          };
+          steps.forEach((step) => step.addEventListener('click', onStepClick));
 
           return () => {
             section.classList.remove('is-pinned');
+            activeTrigger?.kill();
+            activeTrigger = undefined;
+            steps.forEach((step) =>
+              step.removeEventListener('click', onStepClick),
+            );
+            gsap.set(track, { clearProps: 'transform' });
+            if (fill) fill.style.transform = 'scaleX(0)';
           };
         },
       );
 
-      // ── Móvil / tablet: mismo pin horizontal con snap ──────
+      // ── Móvil: scroll horizontal nativo ──
       mm.add(
         '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
         () => {
-          section.classList.add('is-pinned');
-
-          gsap.to(track, {
-            x: () => -getDistance(),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: section,
-              start: 'top top',
-              end: () => '+=' + getDistance(),
-              pin: true,
-              scrub: 1,
-              anticipatePin: 0,
-              invalidateOnRefresh: true,
-              snap: {
-                snapTo: (value) =>
-                  panels.length > 1
-                    ? gsap.utils.snap(1 / (panels.length - 1), value)
-                    : 0,
-                duration: { min: 0.25, max: 0.7 },
-                delay: 0.1,
-                ease: 'power1.inOut',
-              },
-              onUpdate: updateActive,
-              onRefresh: updateActive,
-            },
-          });
-
-          updateActive();
+          section.classList.add('is-native');
+          let raf = 0;
+          let firstUpdate = true;
+          const update = () => {
+            raf = 0;
+            const center =
+              viewport.getBoundingClientRect().left + viewport.clientWidth / 2;
+            let best = 0;
+            let bestDistance = Infinity;
+            projects.forEach((project, index) => {
+              const rect = project.getBoundingClientRect();
+              const distance = Math.abs(rect.left + rect.width / 2 - center);
+              if (distance < bestDistance) {
+                bestDistance = distance;
+                best = index;
+              }
+            });
+            setActive(best, !firstUpdate);
+            firstUpdate = false;
+            const max = viewport.scrollWidth - viewport.clientWidth;
+            if (fill) {
+              fill.style.transform = `scaleX(${max > 0 ? viewport.scrollLeft / max : 0})`;
+            }
+          };
+          const onScroll = () => {
+            if (raf) return;
+            raf = requestAnimationFrame(update);
+          };
+          viewport.addEventListener('scroll', onScroll, { passive: true });
+          update();
 
           return () => {
-            section.classList.remove('is-pinned');
+            section.classList.remove('is-native');
+            cancelAnimationFrame(raf);
+            viewport.removeEventListener('scroll', onScroll);
           };
         },
       );
 
-      // ── Distorsión WebGL al hover (solo desktop) ───────────
-      const glCanvas = document.getElementById('project-gl');
-
+      // ── Distorsión WebGL al hover ──
       mm.add(
         '(min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference)',
         () => {
           if (!glCanvas) return;
 
-          let distortion = null;
-          let currentPanel = null;
+          let hovered: HTMLElement | null = null;
           let currentSrc = '';
 
-          function resizeCanvas(media) {
+          const resize = (media: HTMLElement) => {
             if (!distortion) return;
             distortion.resize(media.clientWidth, media.clientHeight);
-          }
+          };
 
-          function onMove(e) {
-            if (!currentPanel || !distortion) return;
-            const media = currentPanel.querySelector('.project-panel__media');
-            const r = media.getBoundingClientRect();
-            const x = (e.clientX - r.left) / r.width;
-            const y = 1 - (e.clientY - r.top) / r.height;
-            distortion.setPointer(x, y);
-          }
+          const onMove = (event: PointerEvent) => {
+            if (!hovered || !distortion) return;
+            const rect = hovered.getBoundingClientRect();
+            distortion.setPointer(
+              (event.clientX - rect.left) / rect.width,
+              1 - (event.clientY - rect.top) / rect.height,
+            );
+          };
 
-          function enter(panel) {
-            if (!panel) return;
-            currentPanel = panel;
-            const media = panel.querySelector('.project-panel__media');
-            const img = panel.querySelector('.project-img');
-            if (!media || !img) return;
-
+          const enter = (media: HTMLElement, image: HTMLImageElement) => {
             if (!distortion) distortion = createProjectDistortion(glCanvas);
+            hovered = media;
+            const openBadge = media.querySelector('.work__open');
+            media.insertBefore(glCanvas, openBadge);
+            resize(media);
 
-            // Insertamos el canvas antes de la franja y del overlay,
-            // para que la distorsión quede por debajo de los botones.
-            const accent = media.querySelector('.project-panel__accent');
-            media.insertBefore(glCanvas, accent);
-            resizeCanvas(media);
-
-            const src = img.getAttribute('src') || '';
-
+            const src = image.getAttribute('src') || '';
             const show = () => {
-              if (currentPanel !== panel) return;
-              resizeCanvas(media);
+              if (hovered !== media || !distortion) return;
+              resize(media);
               glCanvas.classList.add('is-on');
               distortion.setStrength(1);
               distortion.resume();
@@ -400,280 +604,757 @@ const projectsWithDesc = projects.map((p) => ({
             } else {
               show();
             }
-          }
+          };
 
-          function leave() {
-            currentPanel = null;
+          const leave = () => {
+            hovered = null;
             glCanvas.classList.remove('is-on');
-            if (distortion) distortion.setStrength(0);
-          }
+            distortion?.setStrength(0);
+          };
 
-          panels.forEach((panel) => {
-            const media = panel.querySelector('.project-panel__media');
-            media.addEventListener('mouseenter', () => enter(panel));
-            media.addEventListener('mousemove', onMove);
-            media.addEventListener('mouseleave', leave);
+          const listeners: Array<() => void> = [];
+
+          projects.forEach((project) => {
+            const media = project.querySelector<HTMLElement>('.work__media');
+            const image = project.querySelector<HTMLImageElement>('.work__img');
+            if (!media || !image) return;
+            const enterHandler = () => enter(media, image);
+            const leaveHandler = () => leave();
+            media.addEventListener('pointerenter', enterHandler);
+            media.addEventListener('pointermove', onMove);
+            media.addEventListener('pointerleave', leaveHandler);
+            listeners.push(() => {
+              media.removeEventListener('pointerenter', enterHandler);
+              media.removeEventListener('pointermove', onMove);
+              media.removeEventListener('pointerleave', leaveHandler);
+            });
           });
 
           return () => {
             leave();
-            distortion && distortion.pause();
-            glCanvas.classList.remove('is-on');
+            listeners.forEach((remove) => remove());
           };
         },
       );
 
-      // ── Case-study a pantalla completa (FLIP) ──────────────
-      const caseEl = document.getElementById('project-case');
-      const caseMedia = caseEl.querySelector('.project-case__media');
-      const caseTitle = caseEl.querySelector('.project-case__title');
-      const caseDesc = caseEl.querySelector('.project-case__desc');
-      const caseTags = caseEl.querySelector('.project-case__tags');
-      const caseDemo = caseEl.querySelector('.project-case__demo');
-      const caseCode = caseEl.querySelector('.project-case__code');
-      const caseBackdrop = caseEl.querySelector('.project-case__backdrop');
-      const caseBody = caseEl.querySelector('.project-case__body');
-
-      let caseImg = null;
-      let caseOrigin = null;
-      let caseOpen = false;
-
-      const lenis = () => window.__lenis;
-
-      function openCase(panel) {
-        if (caseOpen) return;
-        const img = panel.querySelector('.project-img');
-        const media = panel.querySelector('.project-panel__media');
-        if (!img || !media) return;
-
-        const titleEl = panel.querySelector('.project-panel__title');
-        const descEl = panel.querySelector('.project-panel__desc');
-        const tags = panel.querySelectorAll('.project-panel__tags span');
-        const demo = panel.querySelector('a[data-demo]');
-        const code = panel.querySelector('a[data-code]');
-
-        caseTitle.textContent = titleEl ? titleEl.textContent : '';
-        caseDesc.textContent = descEl ? descEl.textContent : '';
-        caseTags.innerHTML = '';
-        tags.forEach((t) => {
-          const s = document.createElement('span');
-          s.textContent = t.textContent;
-          s.className = t.className;
-          caseTags.appendChild(s);
-        });
-        caseDemo.href = demo ? demo.href : '#';
-        caseCode.href = code ? code.href : '#';
-
-        glCanvas && glCanvas.classList.remove('is-on');
-
-        caseOpen = true;
-        caseImg = img;
-        caseOrigin = media;
-        caseEl.classList.add('is-open');
-        caseEl.setAttribute('aria-hidden', 'false');
-        lenis() && lenis().stop();
-
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          caseMedia.appendChild(img);
-          gsap.fromTo(
-            [caseBackdrop, caseBody],
-            { opacity: 0 },
-            { opacity: 1, duration: 0.3 },
+      // ── Case study ──
+      if (caseEl) {
+        const onKeydown = (event: KeyboardEvent) => {
+          if (!caseOpen) return;
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            closeCase();
+            return;
+          }
+          if (event.key !== 'Tab' || !caseDialog) return;
+          const focusable = Array.from(
+            caseDialog.querySelectorAll<HTMLElement>(
+              'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            ),
           );
-          return;
-        }
-
-        gsap.set(img, { clearProps: 'transform' });
-        const state = Flip.getState(img);
-        caseMedia.appendChild(img);
-
-        Flip.from(state, {
-          duration: 0.8,
-          ease: 'power3.inOut',
-          absolute: true,
-        });
-
-        gsap.fromTo(
-          [caseBackdrop, caseBody],
-          { opacity: 0, y: 24 },
-          { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
-        );
-      }
-
-      function closeCase() {
-        if (!caseOpen || !caseImg) return;
-        caseOpen = false;
-
-        const reduced = window.matchMedia(
-          '(prefers-reduced-motion: reduce)',
-        ).matches;
-
-        gsap.to([caseBackdrop, caseBody], {
-          opacity: 0,
-          duration: 0.25,
-          ease: 'power2.in',
-        });
-
-        const finish = () => {
-          caseEl.classList.remove('is-open');
-          caseEl.setAttribute('aria-hidden', 'true');
-          caseImg = null;
-          caseOrigin = null;
-          lenis() && lenis().start();
+          if (!focusable.length) return;
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
         };
 
-        if (reduced) {
-          caseOrigin.appendChild(caseImg);
-          finish();
-          return;
-        }
+        const openCase = (index: number) => {
+          if (caseOpen) return;
+          const project = projects[index];
+          if (!project || !caseEl || !caseDialog) return;
+          const title =
+            project.querySelector('.work__title')?.textContent ?? '';
+          const desc = project.querySelector('.work__desc')?.textContent ?? '';
+          const tags = Array.from(project.querySelectorAll('.work__tags span'));
+          const image = project.querySelector<HTMLImageElement>('.work__img');
+          const demo = project.querySelector<HTMLAnchorElement>('[data-demo]');
+          const code = project.querySelector<HTMLAnchorElement>('[data-code]');
 
-        const state = Flip.getState(caseImg);
-        caseOrigin.appendChild(caseImg);
-        Flip.from(state, {
-          duration: 0.7,
-          ease: 'power3.inOut',
-          absolute: true,
-          onComplete: finish,
-        });
+          if (caseImage && image) {
+            caseImage.src = image.src;
+            caseImage.alt = image.alt;
+          }
+          if (caseTitle) caseTitle.textContent = title;
+          if (caseDesc) caseDesc.textContent = desc;
+          if (caseTags) {
+            caseTags.innerHTML = '';
+            tags.forEach((tag) => {
+              const span = document.createElement('span');
+              span.textContent = tag.textContent;
+              caseTags.appendChild(span);
+            });
+          }
+          if (caseYear) caseYear.textContent = project.dataset.year || '2025';
+          if (caseStatus)
+            caseStatus.textContent = project.dataset.status || 'LIVE';
+          if (caseStack) {
+            caseStack.textContent = tags
+              .slice(0, 2)
+              .map((tag) => tag.textContent)
+              .filter(Boolean)
+              .join(' / ');
+          }
+          if (caseIndex) {
+            caseIndex.textContent = String(index + 1).padStart(2, '0');
+          }
+          if (caseDemo && demo) caseDemo.href = demo.href;
+          if (caseCode && code) caseCode.href = code.href;
+
+          const active = document.activeElement;
+          lastFocus =
+            active instanceof HTMLElement && active !== document.body
+              ? active
+              : project.querySelector<HTMLElement>('.work__media');
+          caseOpen = true;
+          caseEl.classList.add('is-open');
+          caseEl.setAttribute('aria-hidden', 'false');
+          [main, hud, skipLink].forEach((el) => el?.setAttribute('inert', ''));
+          caseClose?.focus({ preventScroll: true });
+          lenis()?.stop();
+          glCanvas?.classList.remove('is-on');
+          distortion?.setStrength(0);
+
+          if (!reduced) {
+            gsap.fromTo(
+              caseEl.querySelector('.case__backdrop'),
+              { opacity: 0 },
+              { opacity: 1, duration: 0.35, ease: 'power2.out' },
+            );
+            gsap.fromTo(
+              caseDialog,
+              { opacity: 0, y: 30, scale: 0.975 },
+              {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.55,
+                ease: 'expo.out',
+                onComplete: () => caseClose?.focus({ preventScroll: true }),
+              },
+            );
+          }
+        };
+
+        const closeCase = () => {
+          if (!caseOpen || !caseEl) return;
+          caseOpen = false;
+          const finish = () => {
+            caseEl.classList.remove('is-open');
+            caseEl.setAttribute('aria-hidden', 'true');
+            [main, hud, skipLink].forEach((el) => el?.removeAttribute('inert'));
+            lenis()?.start();
+            lastFocus?.focus({ preventScroll: true });
+          };
+
+          if (reduced) {
+            finish();
+          } else {
+            gsap.to(caseEl.querySelector('.case__backdrop'), {
+              opacity: 0,
+              duration: 0.25,
+              ease: 'power2.in',
+            });
+            gsap.to(caseDialog, {
+              opacity: 0,
+              y: 20,
+              scale: 0.985,
+              duration: 0.3,
+              ease: 'power2.in',
+              onComplete: finish,
+            });
+          }
+        };
+
+        const onClick = (event: Event) => {
+          const target = event.target as Element | null;
+          const closeButton = target?.closest?.('[data-case-close]');
+          if (closeButton) {
+            closeCase();
+            return;
+          }
+          const trigger = target?.closest?.(
+            '[data-case]',
+          ) as HTMLElement | null;
+          if (!trigger) return;
+          const project = trigger.closest<HTMLElement>('.work');
+          if (!project) return;
+          openCase(Number(project.dataset.index ?? 0));
+        };
+
+        document.addEventListener('click', onClick);
+        document.addEventListener('keydown', onKeydown);
+        removeCaseListeners = () => {
+          document.removeEventListener('click', onClick);
+          document.removeEventListener('keydown', onKeydown);
+          [main, hud, skipLink].forEach((el) => el?.removeAttribute('inert'));
+        };
       }
 
-      caseEl
-        .querySelectorAll('[data-case-close]')
-        .forEach((el) => el.addEventListener('click', closeCase));
-
-      const onKeydown = (e) => {
-        if (e.key === 'Escape') closeCase();
-      };
-      document.addEventListener('keydown', onKeydown);
-      onCleanup(() => document.removeEventListener('keydown', onKeydown));
-
-      panels.forEach((panel) => {
-        const media = panel.querySelector('.project-panel__media');
-        media.addEventListener('click', (e) => {
-          if (e.target.closest('a')) return;
-          openCase(panel);
-        });
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top bottom',
+        end: 'bottom top',
+        onToggle: (self) =>
+          section.classList.toggle('is-paused', !self.isActive),
       });
+    }, section);
+
+    // Añade metadata a las tarjetas para el modal
+    projects.forEach((project) => {
+      const card = project as HTMLElement;
+      const year = card.querySelector('.work__meta span:nth-child(2)');
+      const status = card.querySelector('.work__status');
+      card.dataset.year = year?.textContent?.trim() || '';
+      card.dataset.status = status?.textContent?.trim() || '';
     });
 
     window.addEventListener(
       'astro:before-swap',
       () => {
-        cleanups.forEach((fn) => fn());
-        cleanups.length = 0;
-        ctx.revert();
+        distortion?.dispose();
+        distortion = null;
+        removeCaseListeners?.();
+        removeCaseListeners = undefined;
+        ctx?.revert();
+        ctx = undefined;
+        inited = false;
       },
       { once: true },
     );
   }
 
   document.addEventListener('astro:page-load', initProjects);
-  initProjects();
+  if (document.readyState !== 'loading') initProjects();
+  else document.addEventListener('DOMContentLoaded', initProjects);
 </script>
 
 <style>
   #proyectos {
-    --project-accent: #ffffff;
-    z-index: 21;
+    --work-accent: var(--chapter-accent);
+    --work-max: 58rem;
+    --work-gap: clamp(1.5rem, 3vw, 2.75rem);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    padding: clamp(4.5rem, 10vh, 8rem) 0 clamp(3rem, 8vh, 6rem);
   }
 
-  .projects-glow {
+  .works-glow {
     position: absolute;
     inset: 0;
+    z-index: -1;
     pointer-events: none;
-    background-color: var(--project-accent);
-    opacity: 0.16;
-    transition:
-      background-color 0.8s ease,
-      opacity 0.8s ease;
-    -webkit-mask-image: radial-gradient(
-      60% 55% at 50% 45%,
-      #000 0%,
+    background: radial-gradient(
+      48% 52% at 50% 48%,
+      color-mix(in srgb, var(--work-accent) 10%, transparent),
       transparent 72%
     );
-    mask-image: radial-gradient(60% 55% at 50% 45%, #000 0%, transparent 72%);
+    filter: blur(42px);
   }
 
-  .projects-pin {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
+  .works-head,
+  .works-foot {
+    width: min(100%, 90rem);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 4.5rem);
+  }
+
+  .works-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    margin-bottom: clamp(2rem, 6vh, 3.5rem);
+  }
+
+  .works-title {
+    margin: 0.8rem 0 0;
+    font-family: var(--font-display);
+    font-size: var(--section-title-size);
+    font-weight: 900;
+    line-height: var(--section-title-leading);
+    letter-spacing: var(--section-title-tracking);
+    text-transform: uppercase;
+    color: var(--color-blanco);
+    overflow: hidden;
+  }
+
+  .works-readout {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 3rem;
-    padding-block: 5rem;
+    align-items: flex-start;
+    gap: 0.35rem;
+    min-width: 12rem;
+    padding-left: 1rem;
+    border-left: 1px solid
+      color-mix(in srgb, var(--work-accent) 30%, transparent);
   }
 
-  .projects-track-wrap {
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
+  .works-readout__label {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
   }
 
-  .projects-track-wrap::-webkit-scrollbar {
-    display: none;
-  }
-
-  .projects-track {
-    display: flex;
-    gap: 2rem;
-    padding-inline: max(1.5rem, calc((100vw - 80rem) / 2 + 1.5rem));
-  }
-
-  .project-panel {
-    flex: 0 0 auto;
-    width: clamp(18rem, 82vw, 42rem);
-    scroll-snap-align: center;
-    transition: opacity 0.5s ease;
-  }
-
-  .project-panel__inner {
-    position: relative;
-  }
-
-  .project-panel__cta {
-    border-radius: 9999px;
-  }
-
-  .project-case__code {
-    background: color-mix(in srgb, var(--color-blanco) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-blanco) 20%, transparent);
+  .works-readout__name {
+    font-size: 0.95rem;
     color: var(--color-blanco);
   }
 
-  .project-case__code:hover {
-    background: color-mix(in srgb, var(--color-blanco) 14%, transparent);
+  .works-readout__count {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--work-accent);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.5s ease;
   }
 
+  .works-readout__slash {
+    margin: 0 0.15rem;
+    opacity: 0.4;
+  }
 
-  #proyectos.is-pinned .projects-track-wrap {
+  .works-viewport {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+  }
+
+  .works-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .works-track {
+    display: flex;
+    gap: var(--work-gap);
+    padding-inline: max(1.25rem, calc((100vw - var(--work-max)) / 2));
+    width: max-content;
+    will-change: transform;
+  }
+
+  .work {
+    flex: 0 0 auto;
+    width: min(calc(100vw - 2.5rem), var(--work-max));
+    padding-inline: 0;
+    scroll-snap-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    transition: opacity 0.5s ease;
+  }
+
+  .work__media {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 18%, transparent);
+    border-radius: 0.9rem;
+    overflow: hidden;
+    background: #08080c;
+    text-align: left;
+    transition:
+      border-color 0.5s ease,
+      transform 0.5s ease;
+  }
+
+  .work__media:hover {
+    border-color: color-mix(in srgb, var(--color-blanco) 42%, transparent);
+  }
+
+  .work__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    transform: scale(1.01);
+    filter: grayscale(1) contrast(1.04);
+    transition:
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.5s ease;
+    user-select: none;
+  }
+
+  .work__media:hover .work__img {
+    transform: scale(1.035);
+  }
+
+  .work__veil {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, rgba(4, 4, 8, 0.62), transparent 42%),
+      radial-gradient(
+        70% 60% at 50% 45%,
+        transparent 40%,
+        rgba(0, 0, 0, 0.16) 100%
+      );
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+  }
+
+  .work__media:hover .work__veil {
+    opacity: 0.55;
+  }
+
+  .work__ghost {
+    position: absolute;
+    top: 0.4rem;
+    left: 1rem;
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.07em;
+    color: transparent;
+    -webkit-text-stroke: 1px
+      color-mix(in srgb, var(--color-blanco) 22%, transparent);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .work__scan {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 13%;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255, 255, 255, 0.09),
+      transparent
+    );
+    animation: work-scan 5.5s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes work-scan {
+    0% {
+      transform: translateY(-120%);
+    }
+    100% {
+      transform: translateY(760%);
+    }
+  }
+
+  .work__open {
+    position: absolute;
+    z-index: 4;
+    right: 1rem;
+    bottom: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 35%, transparent);
+    background: color-mix(in srgb, #000 42%, transparent);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition:
+      background 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  .work__media:hover .work__open {
+    background: var(--color-blanco);
+    color: var(--color-neutro);
+    transform: translateY(-2px);
+  }
+
+  .work__open-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .work__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.2rem;
+  }
+
+  .work__info {
+    max-width: 36rem;
+  }
+
+  .work__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.45rem;
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .work__meta span:first-child {
+    color: var(--color-blanco);
+  }
+
+  .work__status {
+    padding: 0.15rem 0.4rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 24%, transparent);
+    color: var(--color-gris-claro);
+  }
+
+  .work__title {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.4rem, 2.4vw, 2rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    color: var(--color-blanco);
+  }
+
+  .work__desc {
+    margin: 0;
+    font-size: 0.87rem;
+    line-height: 1.55;
+    color: var(--color-gris-claro);
+  }
+
+  .work__aside {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.7rem;
+  }
+
+  .work__tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    max-width: 20rem;
+  }
+
+  .work__tags span {
+    padding: 0.2rem 0.48rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 10%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-gris-claro);
+  }
+
+  .work__links {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .work__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 12%, transparent);
+    color: var(--color-gris-claro);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .work__links a:hover {
+    color: var(--color-blanco);
+    border-color: color-mix(in srgb, var(--color-blanco) 40%, transparent);
+  }
+
+  .work__links svg {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  .works-foot {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  }
+
+  .works-progress {
+    position: relative;
+    flex: 1;
+    height: 1px;
+    background: color-mix(in srgb, var(--color-blanco) 12%, transparent);
+    overflow: hidden;
+  }
+
+  .works-progress__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--color-blanco);
+    transform: scaleX(0);
+    transform-origin: left center;
+    box-shadow: 0 0 12px
+      color-mix(in srgb, var(--color-blanco) 45%, transparent);
+  }
+
+  .works-steps {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .works-step {
+    padding: 0.25rem 0.4rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-gris-oscuro);
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    font-variant-numeric: tabular-nums;
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .works-step:hover {
+    color: var(--color-blanco);
+  }
+
+  .works-step.is-active {
+    color: var(--color-blanco);
+    border-color: color-mix(in srgb, var(--color-blanco) 32%, transparent);
+  }
+
+  .works-hint {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+    text-align: right;
+  }
+
+  #proyectos.is-pinned .works-viewport {
     overflow: hidden;
     scroll-snap-type: none;
   }
 
-  #proyectos.is-pinned .projects-track {
-    will-change: transform;
+  #proyectos.is-pinned .work {
+    opacity: 0.28;
   }
 
-  #proyectos.is-pinned .project-panel {
-    opacity: 0.45;
-  }
-
-  #proyectos.is-pinned .project-panel.is-active {
+  #proyectos.is-pinned .work.is-active {
     opacity: 1;
+  }
+
+  @media (min-width: 768px) {
+    .work__media {
+      aspect-ratio: 1.9 / 1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    #proyectos.is-pinned {
+      height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: clamp(4.5rem, 9vh, 6rem) 1.2rem;
+    }
+
+    #proyectos.is-pinned .works-head {
+      margin-bottom: clamp(1rem, 2.5vh, 1.6rem);
+    }
+
+    #proyectos.is-pinned .works-foot {
+      margin-top: clamp(1rem, 2.5vh, 1.5rem);
+    }
+
+    #proyectos.is-pinned .works-viewport {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    #proyectos.is-pinned .works-track {
+      height: 100%;
+      align-items: stretch;
+    }
+
+    #proyectos.is-pinned .work {
+      height: 100%;
+      min-height: 0;
+    }
+
+    #proyectos.is-pinned .work__media {
+      flex: 1 1 auto;
+      min-height: 0;
+      aspect-ratio: auto;
+      max-height: 30rem;
+    }
+
+    #proyectos.is-pinned .work__row {
+      flex: 0 0 auto;
+    }
+  }
+
+  @media (min-width: 1024px) and (max-height: 900px) {
+    #proyectos {
+      --work-max: 50rem;
+    }
+  }
+
+  @media (min-width: 1024px) and (max-height: 760px) {
+    #proyectos {
+      --work-max: 42rem;
+      padding-block: 4rem 1rem;
+    }
+
+    #proyectos.is-pinned .works-head {
+      margin-bottom: 1rem;
+    }
+
+    #proyectos.is-pinned .works-foot {
+      margin-top: 1rem;
+    }
+  }
+
+  #proyectos.is-native .work {
+    scroll-snap-align: center;
   }
 
   .project-gl {
     position: absolute;
     inset: 0;
+    z-index: 2;
     width: 100%;
     height: 100%;
     pointer-events: none;
     opacity: 0;
+    filter: grayscale(1);
     transition: opacity 0.35s ease;
   }
 
@@ -681,103 +1362,274 @@ const projectsWithDesc = projects.map((p) => ({
     opacity: 1;
   }
 
-  .project-case {
+  /* ── Modal ── */
+  .case {
     position: fixed;
     inset: 0;
-    z-index: 60;
+    z-index: 70;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
     visibility: hidden;
     pointer-events: none;
   }
 
-  .project-case.is-open {
+  .case.is-open {
     visibility: visible;
     pointer-events: auto;
   }
 
-  .project-case__backdrop {
+  .case__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(6px);
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
-  .project-case__dialog {
+  .case__dialog {
     position: relative;
     z-index: 2;
-    width: min(64rem, 92vw);
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    width: min(68rem, 94vw);
+    max-height: 92svh;
+    display: grid;
+    grid-template-columns: 1fr;
+    overflow: hidden auto;
+    border-radius: 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 16%, transparent);
     background: var(--color-neutro);
-    border: 1px solid var(--color-borde);
+    box-shadow: 0 50px 140px -40px rgba(0, 0, 0, 0.9);
   }
 
-  .project-case__close {
+  .case__close {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    z-index: 3;
-    display: flex;
+    top: 0.8rem;
+    right: 0.8rem;
+    z-index: 5;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 9999px;
-    color: var(--color-blanco);
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    transition: background 0.3s ease;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 25%, transparent);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    color: #fff;
   }
 
-  .project-case__close:hover {
-    background: rgba(0, 0, 0, 0.75);
+  .case__close:hover {
+    background: rgba(0, 0, 0, 0.7);
   }
 
-  .project-case__media {
+  .case__close-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .case__media {
     position: relative;
-    width: 100%;
-    height: min(52vh, 32rem);
-    flex: none;
-    overflow: hidden;
-    background: #000;
+    min-height: 15rem;
+    background: #060609;
   }
 
-  .project-case__media img {
+  .case__media img {
     width: 100%;
     height: 100%;
+    max-height: 50svh;
     object-fit: cover;
+    filter: saturate(1.04) contrast(1.02);
   }
 
-  .project-case__body {
-    padding: 2rem;
+  .case__index {
+    position: absolute;
+    left: 1rem;
+    bottom: 0.5rem;
+    font-family: var(--font-display);
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+  }
+
+  .case__scan {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255, 255, 255, 0.035),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .case__body {
+    padding: clamp(1.4rem, 3vw, 2.5rem);
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    overflow-y: auto;
+    gap: 0.85rem;
   }
 
-  @media (max-width: 1023px) {
-    .project-panel {
-      width: calc(100vw - 3rem);
+  .case__kicker {
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .case__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--color-blanco);
+  }
+
+  .case__desc {
+    margin: 0;
+    max-width: 45rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--color-gris-claro);
+  }
+
+  .case__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .case__tags span {
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 12%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-gris-claro);
+  }
+
+  .case__meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 1rem 0;
+    margin-top: 0.25rem;
+    border-top: 1px solid
+      color-mix(in srgb, var(--color-blanco) 10%, transparent);
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--color-blanco) 10%, transparent);
+  }
+
+  .case__meta div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .case__meta span {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .case__meta strong {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-blanco);
+  }
+
+  .case__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+  }
+
+  .case__links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 25%, transparent);
+    color: var(--color-blanco);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      background 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .case__links a:first-child {
+    background: var(--color-blanco);
+    color: var(--color-neutro);
+    border-color: var(--color-blanco);
+  }
+
+  .case__links a:hover {
+    transform: translateY(-1px);
+  }
+
+  .case__link-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  @media (min-width: 768px) {
+    .case__dialog {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+
+    .case__media {
+      min-height: 100%;
+    }
+
+    .case__media img {
+      max-height: none;
+      height: 100%;
     }
   }
 
-  @media (max-width: 768px) {
-    .project-overlay {
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
-      opacity: 1;
-      justify-content: flex-end;
-      padding-bottom: 2rem;
+  @media (max-width: 767px) {
+    .work__row {
+      flex-direction: column;
     }
 
-    .projects-pin {
-      gap: 2rem;
-      padding-block: 3rem;
+    .work__aside {
+      align-items: flex-start;
+    }
+
+    .work__tags {
+      justify-content: flex-start;
+    }
+
+    .works-hint {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .work__scan {
+      animation: none;
+    }
+
+    .work__img,
+    .work__media,
+    .work__open {
+      transition: none;
     }
   }
 </style>
-

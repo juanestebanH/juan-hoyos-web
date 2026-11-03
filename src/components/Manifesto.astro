@@ -1,0 +1,909 @@
+---
+import { Icon } from 'astro-icon/components';
+import foto from '../assets/juan.png';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
+
+const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
+const t = lang === 'en' ? en : es;
+const chips = [
+  'React',
+  'Node.js',
+  'MySQL',
+  'TailwindCSS',
+  'Python',
+  'JavaScript',
+];
+---
+
+<section id="sobre-mi" class="manifesto is-paused">
+  <div class="manifesto-aurora" aria-hidden="true"></div>
+
+  <div class="manifesto-statement-wrap">
+    <div class="manifesto-statement" id="manifesto-statement">
+      <div class="manifesto-statement__head">
+        <span class="act-kicker">{t.manifesto.protocol}</span>
+        <span class="manifesto-readout">{t.manifesto.readout}</span>
+      </div>
+
+      <h2 class="manifesto-text" id="manifesto-text">
+        {t.manifesto.statement}
+      </h2>
+
+      <div class="manifesto-meter">
+        <span class="manifesto-meter__track">
+          <span class="manifesto-meter__fill"></span>
+        </span>
+        <span class="manifesto-meter__label">{t.manifesto.meter_label}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="manifesto-about">
+    <div class="manifesto-copy">
+      <span class="manifesto-label">{t.manifesto.about_label}</span>
+      <h3 class="manifesto-about__title">{t.about.title}</h3>
+
+      <div class="manifesto-lines">
+        {t.about.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+
+      <div class="manifesto-actions">
+        <a
+          href={t.about.cv_path}
+          download="CV_JuanHoyos.pdf"
+          class="manifesto-btn"
+        >
+          <Icon name="mdi:download" class="manifesto-btn__icon" />
+          <span>{t.about.btn_cv}</span>
+        </a>
+        <span class="manifesto-availability">
+          <span class="manifesto-availability__dot"></span>
+          {t.manifesto.status}
+        </span>
+      </div>
+    </div>
+
+    <div class="manifesto-visual">
+      <div class="manifesto-stage">
+        <canvas id="model-canvas" class="manifesto-canvas"></canvas>
+        <img src={foto.src} alt="Juan Hoyos" class="manifesto-photo" />
+
+        <div class="manifesto-chips" aria-hidden="true">
+          {chips.map((chip) => <span class="manifesto-chip">{chip}</span>)}
+        </div>
+
+        <span class="manifesto-stage__tag">SCAN_01 // HUMAN</span>
+        <span class="manifesto-stage__coords">4.7110 N / 74.0721 W</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { SplitText } from 'gsap/SplitText';
+  // @ts-ignore
+  import * as THREE from 'three';
+  // @ts-ignore
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  // @ts-ignore
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+  import { splitMaskWords } from '../util/text';
+
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+
+  let ctx: gsap.Context | undefined;
+  let cleanupModel: (() => void) | undefined;
+  let cleanupIO: (() => void) | undefined;
+  let inited = false;
+
+  function initManifesto() {
+    const section = document.getElementById('sobre-mi');
+    if (!section || inited) return;
+    inited = true;
+
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    const canvas = section.querySelector<HTMLCanvasElement>('#model-canvas');
+    const photo = section.querySelector<HTMLElement>('.manifesto-photo');
+    const chips = gsap.utils.toArray<HTMLElement>('.manifesto-chip', section);
+    const statement = section.querySelector<HTMLElement>(
+      '#manifesto-statement',
+    );
+    const textEl = section.querySelector<HTMLElement>('#manifesto-text');
+    const words = textEl ? splitMaskWords(textEl) : [];
+
+    ctx = gsap.context(() => {
+      if (reduced) {
+        gsap.set(words, { yPercent: 0, opacity: 1 });
+        gsap.set('.manifesto-meter__fill', { scaleX: 1 });
+        return;
+      }
+
+      const about = section.querySelector<HTMLElement>('.manifesto-about');
+      const aboutWords = splitMaskWords(
+        section.querySelector<HTMLElement>('.manifesto-about__title'),
+      );
+
+      const aboutTl = gsap.timeline({ paused: true });
+      aboutTl
+        .from(
+          aboutWords,
+          {
+            yPercent: 110,
+            duration: 0.9,
+            stagger: 0.08,
+            ease: 'expo.out',
+          },
+          0,
+        )
+        .from(
+          '.manifesto-lines p',
+          {
+            y: 64,
+            x: (lineIndex) => (lineIndex % 2 === 0 ? 28 : -28),
+            rotate: (lineIndex) => (lineIndex % 2 === 0 ? 0.8 : -0.8),
+            opacity: 0,
+            duration: 0.9,
+            stagger: 0.14,
+            ease: 'power3.out',
+          },
+          0.08,
+        )
+        .from(
+          '.manifesto-actions > *',
+          {
+            y: 46,
+            scale: 0.94,
+            opacity: 0,
+            duration: 0.7,
+            stagger: 0.12,
+            ease: 'power3.out',
+          },
+          0.4,
+        )
+        .fromTo(
+          '.manifesto-visual',
+          { clipPath: 'inset(0 0 100% 0)', y: 36, scale: 1.04 },
+          {
+            clipPath: 'inset(0 0 0% 0)',
+            y: 0,
+            scale: 1,
+            duration: 1.1,
+            ease: 'expo.out',
+          },
+          0,
+        )
+        .fromTo(
+          chips,
+          { opacity: 0, '--cs': 0.5, y: 24 },
+          {
+            opacity: 1,
+            '--cs': 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.12,
+            ease: 'back.out(1.5)',
+          },
+          0.35,
+        );
+
+      // Más lenta (1 = velocidad original). Sube el número para acelerarla.
+      aboutTl.timeScale(0.6);
+
+      const mm = gsap.matchMedia();
+
+      mm.add(
+        '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
+        () => {
+          gsap.set(words, { opacity: 0.12, yPercent: 26, scale: 0.955 });
+          const pin = gsap.timeline({
+            scrollTrigger: {
+              trigger: statement,
+              start: 'top top',
+              end: () => `+=${Math.round(window.innerHeight * 0.9)}`,
+              pin: true,
+              scrub: 0.8,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+            },
+          });
+
+          pin
+            .to(
+              words,
+              {
+                opacity: 1,
+                yPercent: 0,
+                scale: 1,
+                stagger: 0.07,
+                ease: 'none',
+              },
+              0,
+            )
+            .to('.manifesto-meter__fill', { scaleX: 1, ease: 'none' }, 0)
+            .to('.manifesto-text', { yPercent: -10, ease: 'none' }, 0.6);
+
+          return () => {
+            pin.scrollTrigger?.kill();
+            pin.kill();
+            gsap.set(words, { opacity: 1, clearProps: 'transform' });
+          };
+        },
+      );
+
+      mm.add(
+        '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
+        () => {
+          gsap.from(words, {
+            opacity: 0.15,
+            yPercent: 42,
+            scale: 0.97,
+            stagger: 0.035,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: statement,
+              start: 'top 78%',
+              toggleActions: 'play none none reset',
+            },
+          });
+        },
+      );
+
+      // El bloque "about" se dispara con un ScrollTrigger (se limpia solo con ctx.revert()).
+      // Se crea después del pin para que los cálculos de posición incluyan el pin-spacer.
+      // Entra cuando el bloque ya está bien dentro de la pantalla (top al 62% del alto)
+      // y se revierte al subir, así vuelve a animarse cada vez que bajas de nuevo.
+      if (about) {
+        ScrollTrigger.create({
+          trigger: about,
+          start: 'top 62%',
+          animation: aboutTl,
+          toggleActions: 'play none none reverse',
+        });
+      }
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top bottom',
+        end: 'bottom top',
+        onToggle: (self) =>
+          section.classList.toggle('is-paused', !self.isActive),
+      });
+    }, section);
+
+    // ── Modelo 3D, cargado solo al acercarse ──
+    if (canvas && photo) {
+      let renderer: THREE.WebGLRenderer | null = null;
+      let scene: THREE.Scene | null = null;
+      let camera: THREE.PerspectiveCamera | null = null;
+      let accentLight: THREE.PointLight | null = null;
+      let model: THREE.Group | null = null;
+      let modelBaseY = 0;
+      let modelRise = 0.4;
+      let raf = 0;
+      let scrollProgress = 0;
+      let targetCx = 0;
+      let targetCy = 0;
+      let curCx = 0;
+      let curCy = 0;
+      const intro = { p: 0 };
+      const chipsPos = chips.map(() => ({ x: 0, y: 0 }));
+      let started = false;
+      let modelReady = false;
+      let revealed = false;
+
+      const showPhoto = () => {
+        canvas.style.display = 'none';
+        photo.classList.add('is-visible');
+      };
+
+      const renderOnce = () => {
+        if (renderer && scene && camera) renderer.render(scene, camera);
+      };
+
+      const revealModel = () => {
+        if (revealed || !modelReady) return;
+        revealed = true;
+
+        if (reduced) {
+          intro.p = 1;
+          canvas.style.opacity = '1';
+          renderOnce();
+          return;
+        }
+
+        gsap.to(intro, {
+          p: 1,
+          duration: 1.4,
+          ease: 'power2.out',
+        });
+      };
+
+      const startModel = () => {
+        if (started) return;
+        started = true;
+
+        try {
+          renderer = new THREE.WebGLRenderer({
+            canvas,
+            alpha: true,
+            antialias: true,
+          });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+          renderer.outputColorSpace = THREE.SRGBColorSpace;
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.08;
+
+          scene = new THREE.Scene();
+          camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+          scene.add(new THREE.AmbientLight(0xffffff, 2.1));
+
+          const key = new THREE.DirectionalLight(0xffffff, 2.4);
+          key.position.set(0, 2, 5);
+          scene.add(key);
+
+          const fill = new THREE.DirectionalLight(0xffffff, 1.2);
+          fill.position.set(-5, 0, 3);
+          scene.add(fill);
+
+          accentLight = new THREE.PointLight(0xffffff, 34, 13, 2);
+          accentLight.position.set(3, 2, 4);
+          scene.add(accentLight);
+
+          try {
+            const pmrem = new THREE.PMREMGenerator(renderer);
+            scene.environment = pmrem.fromScene(
+              new RoomEnvironment(),
+              0.04,
+            ).texture;
+          } catch {
+            /* entorno opcional */
+          }
+
+          const resize = () => {
+            if (!renderer || !camera) return;
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            if (!width || !height) return;
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            if (reduced) renderOnce();
+          };
+
+          const observer = new ResizeObserver(resize);
+          observer.observe(canvas);
+          resize();
+
+          const loader = new GLTFLoader();
+          loader.load(
+            '/juan-3d.glb',
+            (gltf: any) => {
+              model = gltf.scene as THREE.Group;
+              const box = new THREE.Box3().setFromObject(model);
+              const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              model.position.sub(center);
+              modelBaseY = model.position.y;
+              modelRise = size.y * 0.28;
+
+              const maxDim = Math.max(size.x, size.y, size.z);
+              const fov =
+                ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 180;
+              (camera as THREE.PerspectiveCamera).position.z =
+                (maxDim / 2 / Math.tan(fov / 2)) * 1.16;
+              scene?.add(model);
+              modelReady = true;
+              revealModel();
+              if (reduced) renderOnce();
+            },
+            undefined,
+            showPhoto,
+          );
+
+          const onMove = (event: PointerEvent) => {
+            targetCy = (event.clientX / window.innerWidth - 0.5) * 2;
+            targetCx = (event.clientY / window.innerHeight - 0.5) * 2;
+          };
+          window.addEventListener('pointermove', onMove, { passive: true });
+
+          const loop = () => {
+            raf = requestAnimationFrame(loop);
+
+            curCx += (targetCx - curCx) * 0.06;
+            curCy += (targetCy - curCy) * 0.06;
+
+            if (model) {
+              model.rotation.y =
+                Math.sin(scrollProgress * Math.PI) * 0.5 + curCy * 0.45;
+              model.rotation.x = curCx * 0.22;
+              model.rotation.z = Math.sin(scrollProgress * Math.PI) * 0.05;
+              model.scale.setScalar(0.86 + intro.p * 0.14);
+              model.position.y = modelBaseY - (1 - intro.p) * modelRise;
+            }
+
+            canvas.style.opacity = String(intro.p);
+
+            if (accentLight) {
+              accentLight.position.x = 3 + curCy * 3;
+              accentLight.position.y = 2 - curCx * 3;
+            }
+
+            const t = performance.now() / 1400;
+            chips.forEach((chip, i) => {
+              const depth = 12 + (i % 3) * 10;
+              const tx = curCy * depth;
+              const ty = curCx * depth * 0.8 + Math.sin(t + i) * 5;
+              chipsPos[i].x += (tx - chipsPos[i].x) * 0.08;
+              chipsPos[i].y += (ty - chipsPos[i].y) * 0.08;
+              chip.style.setProperty('--tx', `${chipsPos[i].x}px`);
+              chip.style.setProperty('--ty', `${chipsPos[i].y}px`);
+            });
+
+            renderOnce();
+          };
+
+          const startLoop = () => {
+            if (reduced || raf) return;
+            loop();
+          };
+          const stopLoop = () => {
+            cancelAnimationFrame(raf);
+            raf = 0;
+          };
+
+          if (reduced) renderOnce();
+
+          const progressTrigger = ScrollTrigger.create({
+            trigger: section,
+            start: 'top bottom',
+            end: 'bottom top',
+            onUpdate: (self) => {
+              scrollProgress = self.progress;
+            },
+            onToggle: (self) => {
+              section.classList.toggle('is-paused', !self.isActive);
+              if (self.isActive) startLoop();
+              else stopLoop();
+            },
+          });
+
+          // El loop solo corre mientras la sección está en pantalla
+          if (ScrollTrigger.isInViewport(section)) startLoop();
+
+          cleanupModel = () => {
+            cancelAnimationFrame(raf);
+            raf = 0;
+            observer.disconnect();
+            window.removeEventListener('pointermove', onMove);
+            progressTrigger.kill();
+            gsap.killTweensOf(intro);
+            renderer?.dispose();
+          };
+        } catch {
+          showPhoto();
+        }
+      };
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            startModel();
+            io.disconnect();
+          }
+        },
+        { rootMargin: '240px' },
+      );
+      io.observe(section);
+
+      // Limpieza real: se ejecuta en astro:before-swap (NO usar ctx.add aquí,
+      // porque ctx.add(fn) ejecuta fn inmediatamente).
+      cleanupIO = () => io.disconnect();
+    }
+
+    window.addEventListener(
+      'astro:before-swap',
+      () => {
+        cleanupIO?.();
+        cleanupIO = undefined;
+        cleanupModel?.();
+        cleanupModel = undefined;
+        ctx?.revert();
+        ctx = undefined;
+        inited = false;
+      },
+      { once: true },
+    );
+  }
+
+  document.addEventListener('astro:page-load', initManifesto);
+  if (document.readyState !== 'loading') initManifesto();
+  else document.addEventListener('DOMContentLoaded', initManifesto);
+</script>
+
+<style>
+  .manifesto {
+    position: relative;
+    padding: clamp(5rem, 12vh, 9rem) clamp(1.25rem, 5vw, 4.5rem);
+    isolation: isolate;
+  }
+
+  .manifesto-aurora {
+    position: absolute;
+    inset: -5%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        42% 36% at 72% 32%,
+        color-mix(in srgb, var(--chapter-accent) 16%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        30% 26% at 28% 72%,
+        color-mix(in srgb, var(--chapter-accent) 6%, transparent),
+        transparent 72%
+      );
+    filter: blur(48px);
+    animation: manifesto-breathe 12s ease-in-out infinite;
+  }
+
+  @keyframes manifesto-breathe {
+    0%,
+    100% {
+      opacity: 0.65;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+  }
+
+  .manifesto-statement-wrap {
+    position: relative;
+    width: min(100%, 90rem);
+    margin: 0 auto;
+  }
+
+  .manifesto-statement {
+    max-width: 70rem;
+    margin-inline: auto;
+    min-height: 100svh;
+    padding-top: calc(var(--hud-height) + 3rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .manifesto-statement__head {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: clamp(1.5rem, 5vh, 3rem);
+  }
+
+  .manifesto-readout {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .manifesto-text {
+    margin: 0 auto;
+    max-width: 62rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 5.4vw, 5.2rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    color: var(--color-blanco);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .manifesto-text :global(.mask-word) {
+    margin-right: 0.12em;
+  }
+
+  .manifesto-text :global(.mask-word__inner) {
+    transition: color 0.3s ease;
+  }
+
+  .manifesto-meter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: clamp(2rem, 6vh, 4rem);
+  }
+
+  .manifesto-meter__track {
+    position: relative;
+    display: block;
+    width: min(18rem, 50vw);
+    height: 1px;
+    background: color-mix(in srgb, var(--color-blanco) 12%, transparent);
+    overflow: hidden;
+  }
+
+  .manifesto-meter__fill {
+    position: absolute;
+    inset: 0;
+    background: var(--chapter-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    box-shadow: 0 0 14px
+      color-mix(in srgb, var(--chapter-accent) 60%, transparent);
+  }
+
+  .manifesto-meter__label {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .manifesto-about {
+    width: min(100%, 90rem);
+    margin: clamp(4rem, 12vh, 9rem) auto 0;
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .manifesto-copy {
+    max-width: 39rem;
+  }
+
+  .manifesto-label {
+    display: inline-block;
+    margin-bottom: 1.1rem;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--chapter-accent);
+  }
+
+  .manifesto-about__title {
+    margin: 0 0 1.6rem;
+    font-family: var(--font-display);
+    font-size: var(--section-title-size);
+    font-weight: 900;
+    line-height: var(--section-title-leading);
+    letter-spacing: var(--section-title-tracking);
+    text-transform: uppercase;
+    color: var(--color-blanco);
+    overflow: hidden;
+  }
+
+  .manifesto-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  .manifesto-lines p {
+    margin: 0;
+    font-size: clamp(0.98rem, 1.35vw, 1.12rem);
+    line-height: 1.7;
+    color: var(--color-gris-claro);
+  }
+
+  .manifesto-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .manifesto-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.8rem 1.35rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--chapter-accent) 45%, transparent);
+    background: color-mix(in srgb, var(--chapter-accent) 10%, transparent);
+    color: var(--color-blanco);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      background 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  .manifesto-btn:hover {
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--chapter-accent) 20%, transparent);
+    box-shadow: 0 0 42px -14px var(--chapter-accent);
+  }
+
+  .manifesto-btn__icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .manifesto-availability {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .manifesto-availability__dot {
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--color-blanco);
+    box-shadow: 0 0 10px
+      color-mix(in srgb, var(--color-blanco) 55%, transparent);
+  }
+
+  .manifesto-visual {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 10%, transparent);
+    background:
+      radial-gradient(
+        60% 60% at 50% 55%,
+        color-mix(in srgb, var(--chapter-accent) 10%, transparent),
+        transparent 72%
+      ),
+      color-mix(in srgb, var(--color-neutro) 40%, transparent);
+    clip-path: inset(0 0 0 0);
+  }
+
+  .manifesto-stage {
+    position: relative;
+    width: 100%;
+    height: min(72vw, 31rem);
+  }
+
+  .manifesto-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  .manifesto-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .manifesto-photo.is-visible {
+    opacity: 1;
+  }
+
+  .manifesto-chips {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .manifesto-chip {
+    position: absolute;
+    --tx: 0px;
+    --ty: 0px;
+    --cs: 1;
+    padding: 0.32rem 0.68rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--chapter-accent) 40%, transparent);
+    background: color-mix(in srgb, var(--color-neutro) 70%, transparent);
+    backdrop-filter: blur(8px);
+    color: var(--chapter-accent);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translate3d(var(--tx), var(--ty), 0) scale(var(--cs));
+    will-change: transform;
+  }
+
+  .manifesto-chip:nth-child(1) {
+    top: 9%;
+    left: 4%;
+  }
+  .manifesto-chip:nth-child(2) {
+    top: 24%;
+    right: 4%;
+  }
+  .manifesto-chip:nth-child(3) {
+    top: 55%;
+    left: 1%;
+  }
+  .manifesto-chip:nth-child(4) {
+    top: 72%;
+    right: 6%;
+  }
+  .manifesto-chip:nth-child(5) {
+    bottom: 5%;
+    left: 18%;
+  }
+  .manifesto-chip:nth-child(6) {
+    top: 42%;
+    right: 0%;
+  }
+
+  .manifesto-stage__tag,
+  .manifesto-stage__coords {
+    position: absolute;
+    z-index: 3;
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+    pointer-events: none;
+  }
+
+  .manifesto-stage__tag {
+    top: 0.9rem;
+    left: 0.9rem;
+  }
+  .manifesto-stage__coords {
+    right: 0.9rem;
+    bottom: 0.9rem;
+  }
+
+  .manifesto.is-paused .manifesto-aurora {
+    animation-play-state: paused;
+  }
+
+  @media (min-width: 768px) {
+    .manifesto-about {
+      grid-template-columns: 1.05fr 0.95fr;
+    }
+
+    .manifesto-visual {
+      position: sticky;
+      top: 12vh;
+    }
+
+    .manifesto-stage {
+      height: min(44vw, 35rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .manifesto-aurora {
+      animation: none;
+    }
+
+    .manifesto-chip {
+      transform: none !important;
+    }
+  }
+</style>

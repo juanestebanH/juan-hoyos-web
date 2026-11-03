@@ -1,6 +1,10 @@
 ---
 import { Icon } from 'astro-icon/components';
-import SceneIndex from './SceneIndex.astro';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
+
+const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
+const t = lang === 'en' ? en : es;
 
 const socialLinks = [
   {
@@ -14,6 +18,9 @@ const socialLinks = [
     href: 'https://linkedin.com/in/juan-esteban-hoyos-0b60912b4',
   },
 ];
+
+const email = 'juanestebanhoyos.dev@gmail.com';
+const cv = lang === 'en' ? '/cv-juan-hoyos-en.pdf' : '/cv-juan-hoyos-es.pdf';
 
 interface Props {
   title: string;
@@ -35,49 +42,80 @@ const {
 } = Astro.props;
 ---
 
-<!-- Toast container -->
 <div
   id="toast-container"
-  class="fixed top-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"
+  class="contact-toasts"
+  aria-live="polite"
+  aria-atomic="false"
 >
 </div>
 
-<section
-  id="contacto"
-  class="contact-section min-h-screen py-20 px-6 md:px-10 relative overflow-hidden"
->
-  <div class="contact-aurora" aria-hidden="true"></div>
+<section id="contacto" class="contact-section">
+  <div class="contact-portal" aria-hidden="true">
+    <span class="contact-ring contact-ring--1"></span>
+    <span class="contact-ring contact-ring--2"></span>
+    <span class="contact-ring contact-ring--3"></span>
+    <span class="contact-core"></span>
+  </div>
   <div class="contact-grid" aria-hidden="true"></div>
-  <SceneIndex index="06" />
 
-  <div class="max-w-7xl mx-auto relative z-10">
-    <header class="text-start mb-14">
-      <h2 class="contact-title text-blanco overflow-hidden">{title}</h2>
-      <p class="contact-kicker">{subtitle}</p>
+  <div class="contact-wrap">
+    <header class="contact-head">
+      <div class="contact-head__meta">
+        <span class="act-kicker">{t.contact.kicker}</span>
+        <span class="contact-readout">{title} <span>06</span></span>
+      </div>
+
+      <h2 class="contact-title">{subtitle}</h2>
+
+      <div class="contact-head__foot">
+        <p class="contact-desc">{description}</p>
+        <a class="contact-mail" href={`mailto:${email}`}>
+          <span>{email}</span>
+          <Icon name="mdi:arrow-top-right" class="contact-mail__icon" />
+        </a>
+      </div>
     </header>
 
-    <div class="grid md:grid-cols-2 gap-10 items-start">
+    <div class="contact-layout">
       <div class="contact-left">
-        <p class="contact-desc text-gris-claro max-w-md">{description}</p>
+        <div class="contact-facts">
+          <div>
+            <span>{t.contact.local_time}</span>
+            <strong id="contact-clock">--:--</strong>
+          </div>
+          <div>
+            <span>{t.contact.availability_label}</span>
+            <strong class="contact-facts__live">
+              <i aria-hidden="true"></i>
+              {t.contact.availability}
+            </strong>
+          </div>
+        </div>
 
-        <div class="contact-socials grid grid-cols-2 gap-4 mt-20">
-          {
-            socialLinks.map((social) => (
-              <a
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="social-card"
-              >
-                <div class="social-inner">
-                  <div class="social-icon">
-                    <Icon name={social.icon} class="w-7 h-7 text-blanco" />
-                  </div>
-                  <span class="social-text">{social.name}</span>
-                </div>
-              </a>
-            ))
-          }
+        <div class="contact-links">
+          <span class="contact-links__label">{t.contact.socials}</span>
+          <div class="contact-socials">
+            {
+              socialLinks.map((social) => (
+                <a
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="social-card"
+                >
+                  <Icon name={social.icon} class="social-icon" />
+                  <span>{social.name}</span>
+                  <Icon name="mdi:arrow-top-right" class="social-arrow" />
+                </a>
+              ))
+            }
+            <a href={cv} download class="social-card social-card--cv">
+              <Icon name="mdi:file-download-outline" class="social-icon" />
+              <span>{t.contact.cv}</span>
+              <Icon name="mdi:arrow-down" class="social-arrow" />
+            </a>
+          </div>
         </div>
       </div>
 
@@ -86,7 +124,12 @@ const {
           <div class="contact-spotlight" aria-hidden="true"></div>
           <div class="contact-flash" aria-hidden="true"></div>
 
-          <form id="contact-form" class="space-y-4">
+          <div class="contact-card__head">
+            <span class="contact-card__title">{t.contact.form_title}</span>
+            <span class="contact-card__note">{t.contact.form_note}</span>
+          </div>
+
+          <form id="contact-form" class="contact-form" novalidate>
             <div class="contact-field">
               <input
                 id="cf-name"
@@ -97,9 +140,7 @@ const {
                 autocomplete="name"
                 class="contact-input"
               />
-              <label for="cf-name" class="contact-label"
-                >{formulario_nombre}</label
-              >
+              <label for="cf-name" class="contact-label">{formulario_nombre}</label>
               <span class="contact-line"></span>
             </div>
 
@@ -113,9 +154,7 @@ const {
                 autocomplete="email"
                 class="contact-input"
               />
-              <label for="cf-email" class="contact-label"
-                >{formulario_email}</label
-              >
+              <label for="cf-email" class="contact-label">{formulario_email}</label>
               <span class="contact-line"></span>
             </div>
 
@@ -123,26 +162,40 @@ const {
               <textarea
                 id="cf-message"
                 name="message"
-                rows="5"
+                rows="4"
                 required
                 placeholder=" "
                 class="contact-input contact-textarea"></textarea>
-              <label for="cf-message" class="contact-label"
-                >{formulario_mensaje}</label
-              >
+              <label for="cf-message" class="contact-label">{formulario_mensaje}</label>
               <span class="contact-line"></span>
             </div>
 
             <button type="submit" class="contact-btn">
-              <span class="contact-btn-icon">
-                <Icon name="mdi:send" class="w-5 h-5" />
-              </span>
               <span>{btn_email}</span>
+              <span class="contact-btn-icon">
+                <Icon name="mdi:send" />
+              </span>
             </button>
+
+            <p id="contact-status" class="contact-status" role="status"></p>
           </form>
+
+          <a class="contact-direct" href={`mailto:${email}`}>
+            <Icon name="mdi:email-outline" />
+            {t.contact.direct}
+          </a>
         </div>
       </div>
     </div>
+
+    <footer class="contact-foot">
+      <span>© 2026 Juan Esteban Hoyos</span>
+      <span class="contact-foot__mid">{t.contact.footer}</span>
+      <a href="#inicio" aria-label={t.contact.back_top}>
+        {t.contact.back_top}
+        <Icon name="mdi:arrow-up" />
+      </a>
+    </footer>
   </div>
 </section>
 
@@ -150,69 +203,28 @@ const {
   import emailjs from '@emailjs/browser';
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { animateTitleChars } from '../util/animations';
+  import { splitMaskWords } from '../util/text';
 
   gsap.registerPlugin(ScrollTrigger);
 
-  // ── Toast system ──────────────────────────────────────────
   type ToastType = 'success' | 'error' | 'loading';
 
-  function showToast(
-    message: string,
-    type: ToastType = 'success',
-  ): HTMLElement {
-    const container = document.getElementById('toast-container')!;
-
-    const icons: Record<ToastType, string> = {
-      success: '✅',
-      error: '❌',
-      loading: '⏳',
-    };
-
-    const colors: Record<ToastType, string> = {
-      success: '#22c55e',
-      error: '#ef4444',
-      loading: '#a0a0a0',
-    };
-
+  function showToast(message: string, type: ToastType = 'success'): HTMLElement | null {
+    const container = document.getElementById('toast-container');
+    if (!container) return null;
     const toast = document.createElement('div');
-    toast.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(20, 20, 20, 0.72);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      color: #fff;
-      padding: 13px 18px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-left: 3px solid ${colors[type]};
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 500;
-      pointer-events: all;
-      opacity: 0;
-      transform: translateX(60px);
-      min-width: 260px;
-    `;
-
-    toast.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+    toast.className = `contact-toast contact-toast--${type}`;
+    toast.textContent = message;
     container.appendChild(toast);
-
-    gsap.to(toast, {
-      opacity: 1,
-      x: 0,
-      duration: 0.4,
-      ease: 'power3.out',
-    });
-
+    gsap.to(toast, { opacity: 1, x: 0, duration: 0.35, ease: 'power3.out' });
     return toast;
   }
 
-  function dismissToast(toast: HTMLElement, delay = 0) {
+  function dismissToast(toast: HTMLElement | null, delay = 0) {
+    if (!toast) return;
     gsap.to(toast, {
       opacity: 0,
-      x: 60,
+      x: 30,
       duration: 0.3,
       delay,
       ease: 'power3.in',
@@ -220,258 +232,200 @@ const {
     });
   }
 
-  // ── Contacto ──────────────────────────────────────────────
   function initContact() {
-    const section = document.querySelector('#contacto') as HTMLElement | null;
+    const section = document.getElementById('contacto');
     const form = document.getElementById('contact-form') as HTMLFormElement | null;
-
-    if (!section || !form) return;
-    if (section.dataset.inited === 'true') return;
+    if (!section || !form || section.dataset.inited === 'true') return;
     section.dataset.inited = 'true';
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const fine = window.matchMedia('(pointer: fine)').matches;
+    const clock = document.getElementById('contact-clock');
+    const status = document.getElementById('contact-status');
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'es';
+    const copy =
+      lang === 'en'
+        ? {
+            sending: 'Sending message…',
+            success: 'Message sent. I will get back to you soon.',
+            error: 'Something went wrong. Please try again or email me directly.',
+            invalid: 'Please complete all fields with a valid email.',
+          }
+        : {
+            sending: 'Enviando mensaje…',
+            success: 'Mensaje enviado. Te responderé pronto.',
+            error: 'Algo falló. Inténtalo de nuevo o escríbeme directo.',
+            invalid: 'Completa todos los campos con un correo válido.',
+          };
 
-    const ctx = gsap.context(() => {
-      animateTitleChars('.contact-title');
+    const updateClock = () => {
+      if (!clock) return;
+      clock.textContent = new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'es-CO', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'America/Bogota',
+      }).format(new Date());
+    };
+    updateClock();
+    const clockTimer = window.setInterval(updateClock, 30_000);
+
+    const titleWords = splitMaskWords(section.querySelector('.contact-title'));
+
+    const ctx = gsap.context((self) => {
+      if (!reduced) {
+        gsap.from(titleWords, {
+          yPercent: 115,
+          duration: 1,
+          stagger: 0.07,
+          ease: 'expo.out',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 94%',
+            end: 'top 52%',
+            scrub: 1,
+          },
+        });
+
+        gsap.from('.contact-head__meta, .contact-desc, .contact-mail', {
+          y: 52,
+          x: (itemIndex) => (itemIndex % 2 === 0 ? 22 : -18),
+          scale: 0.97,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 92%',
+            end: 'top 56%',
+            scrub: 1,
+          },
+        });
+
+        gsap.from('.contact-facts > div, .contact-links', {
+          y: 48,
+          scale: 0.97,
+          opacity: 0,
+          duration: 0.7,
+          stagger: 0.09,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.contact-facts',
+            start: 'top 96%',
+            end: 'top 64%',
+            scrub: 1,
+          },
+        });
+
+        gsap.from('.contact-tilt', {
+          y: 110,
+          scale: 0.94,
+          rotateX: 6,
+          transformPerspective: 1000,
+          opacity: 0,
+          filter: 'blur(10px)',
+          duration: 1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '.contact-tilt',
+            start: 'top 96%',
+            end: 'top 54%',
+            scrub: 1,
+          },
+        });
+
+        gsap.from('.contact-foot', {
+          opacity: 0,
+          y: 36,
+          duration: 0.7,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.contact-foot',
+            start: 'top 100%',
+            end: 'top 82%',
+            scrub: 1,
+          },
+        });
+      }
 
       ScrollTrigger.create({
         trigger: section,
         start: 'top bottom',
         end: 'bottom top',
-        onToggle: (self) =>
-          section.classList.toggle('is-paused', !self.isActive),
+        onToggle: (self) => section.classList.toggle('is-paused', !self.isActive),
       });
 
-      if (reduced) return;
-
-      gsap.fromTo(
-        '.contact-kicker',
-        { y: 12, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.6,
-          delay: 0.12,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top 85%',
-            toggleActions: 'play none none reset',
-          },
-        },
-      );
-
-      gsap.from('.contact-desc', {
-        y: 24,
-        opacity: 0,
-        duration: 0.7,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.contact-left',
-          start: 'top 85%',
-          toggleActions: 'play none none reset',
-        },
-      });
-
-      gsap.from('.contact-tilt', {
-        y: 40,
-        opacity: 0,
-        duration: 0.9,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.contact-tilt',
-          start: 'top 86%',
-          toggleActions: 'play none none reset',
-        },
-      });
-
-      gsap.from('.contact-field, .contact-btn', {
-        y: 22,
-        opacity: 0,
-        stagger: 0.1,
-        duration: 0.6,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: form,
-          start: 'top 88%',
-          toggleActions: 'play none none reset',
-        },
-      });
-
-      gsap.from('.social-card', {
-        y: 22,
-        opacity: 0,
-        stagger: 0.12,
-        duration: 0.65,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.contact-socials',
-          start: 'top 92%',
-          toggleActions: 'play none none reset',
-        },
-      });
-
-      // Tilt 3D + spotlight de la tarjeta
-      const card = section.querySelector('.contact-card') as HTMLElement | null;
-      if (card && fine) {
-        gsap.set(card, { transformOrigin: 'center' });
-
-        const rx = gsap.quickTo(card, 'rotationX', {
-          duration: 0.5,
-          ease: 'power2.out',
-        });
-        const ry = gsap.quickTo(card, 'rotationY', {
-          duration: 0.5,
-          ease: 'power2.out',
-        });
-
-        card.addEventListener('pointermove', (e) => {
-          const r = card.getBoundingClientRect();
-          const px = (e.clientX - r.left) / r.width - 0.5;
-          const py = (e.clientY - r.top) / r.height - 0.5;
-          rx(-py * 5);
-          ry(px * 7);
-          card.style.setProperty('--mx', `${e.clientX - r.left}px`);
-          card.style.setProperty('--my', `${e.clientY - r.top}px`);
-        });
-
-        card.addEventListener('pointerleave', () => {
-          rx(0);
-          ry(0);
-        });
+      const card = section.querySelector<HTMLElement>('.contact-card');
+      if (card && !reduced && window.matchMedia('(pointer: fine)').matches) {
+        const onMove = (event: PointerEvent) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+          card.style.setProperty('--my', `${event.clientY - rect.top}px`);
+        };
+        card.addEventListener('pointermove', onMove);
+        self.add(() => card.removeEventListener('pointermove', onMove));
       }
-
-      if (!fine) return;
-
-      // Botón magnético
-      const btn = form.querySelector('.contact-btn') as HTMLElement | null;
-      if (btn) {
-        const bx = gsap.quickTo(btn, 'x', {
-          duration: 0.4,
-          ease: 'power3.out',
-        });
-        const by = gsap.quickTo(btn, 'y', {
-          duration: 0.4,
-          ease: 'power3.out',
-        });
-
-        btn.addEventListener('pointermove', (e) => {
-          const r = btn.getBoundingClientRect();
-          bx((e.clientX - r.left - r.width / 2) * 0.22);
-          by((e.clientY - r.top - r.height / 2) * 0.35);
-        });
-
-        btn.addEventListener('pointerleave', () => {
-          bx(0);
-          by(0);
-        });
-      }
-
-      // Socials magnéticos
-      section.querySelectorAll<HTMLElement>('.social-card').forEach((card) => {
-        const icon = card.querySelector('.social-icon');
-
-        const sx = gsap.quickTo(card, 'x', {
-          duration: 0.45,
-          ease: 'power3.out',
-        });
-        const sy = gsap.quickTo(card, 'y', {
-          duration: 0.45,
-          ease: 'power3.out',
-        });
-
-        card.addEventListener('pointermove', (e) => {
-          const r = card.getBoundingClientRect();
-          sx((e.clientX - r.left - r.width / 2) * 0.18);
-          sy((e.clientY - r.top - r.height / 2) * 0.28);
-        });
-
-        card.addEventListener('pointerenter', () => {
-          if (!icon) return;
-          gsap.to(icon, { rotate: -8, scale: 1.12, duration: 0.35, ease: 'power2.out' });
-        });
-
-        card.addEventListener('pointerleave', () => {
-          sx(0);
-          sy(0);
-          if (!icon) return;
-          gsap.to(icon, { rotate: 0, scale: 1, duration: 0.4, ease: 'power2.out' });
-        });
-      });
     }, section);
 
-    const onSubmit = async (e: Event) => {
-      e.preventDefault();
-      const currentForm = e.currentTarget as HTMLFormElement;
-      const button = currentForm.querySelector<HTMLElement>('.contact-btn');
+    const onSubmit = async (event: Event) => {
+      event.preventDefault();
+      if (!form.checkValidity()) {
+        if (status) status.textContent = copy.invalid;
+        form.querySelector<HTMLElement>(':invalid')?.focus({ preventScroll: true });
+        return;
+      }
+
+      const button = form.querySelector<HTMLButtonElement>('.contact-btn');
       const flash = section.querySelector<HTMLElement>('.contact-flash');
+      if (button) {
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+      }
+      if (status) status.textContent = copy.sending;
 
-      if (button) button.disabled = true;
-
-      const loadingToast = showToast('Enviando mensaje...', 'loading');
+      const loadingToast = showToast(copy.sending, 'loading');
 
       try {
         await emailjs.sendForm(
           'service_27ecmm7',
           'template_1ujbt2e',
-          currentForm,
+          form,
           '8XOsc6JgD28fsiEwo',
         );
 
         dismissToast(loadingToast);
-        const successToast = showToast(
-          'Mensaje enviado con éxito 🎉',
-          'success',
-        );
-        dismissToast(successToast, 3);
-
-        currentForm.reset();
+        showToast(copy.success, 'success');
+        if (status) status.textContent = copy.success;
+        form.reset();
 
         if (flash) {
-          gsap.fromTo(
-            flash,
-            { opacity: 0.85 },
-            { opacity: 0, duration: 1, ease: 'power2.out' },
-          );
+          gsap.fromTo(flash, { opacity: 0.85 }, { opacity: 0, duration: 1, ease: 'power2.out' });
         }
 
-        if (button) {
-          const icon = button.querySelector('.contact-btn-icon');
-          gsap.fromTo(
-            button,
-            { scale: 1 },
-            { scale: 1.06, yoyo: true, repeat: 1, duration: 0.18 },
-          );
-          if (icon) {
-            gsap.fromTo(
-              icon,
-              { rotate: 0 },
-              { rotate: 360, duration: 0.7, ease: 'power2.out' },
-            );
-          }
-        }
-      } catch (error) {
+        window.dispatchEvent(new CustomEvent('world:pulse'));
+      } catch {
         dismissToast(loadingToast);
-        const errorToast = showToast(
-          'Ocurrió un error, intenta de nuevo',
-          'error',
-        );
-        dismissToast(errorToast, 3);
-
-        gsap.fromTo(
-          currentForm,
-          { x: -8 },
-          { x: 8, repeat: 5, yoyo: true, duration: 0.05 },
-        );
+        showToast(copy.error, 'error');
+        if (status) status.textContent = copy.error;
+        if (!reduced) {
+          gsap.fromTo(
+            form,
+            { x: -6 },
+            { x: 6, repeat: 5, yoyo: true, duration: 0.05, clearProps: 'x' },
+          );
+        }
       } finally {
-        if (button) button.disabled = false;
+        if (button) {
+          button.disabled = false;
+          button.removeAttribute('aria-busy');
+        }
       }
     };
 
     form.addEventListener('submit', onSubmit);
 
     const teardown = () => {
+      window.clearInterval(clockTimer);
       form.removeEventListener('submit', onSubmit);
       ctx.revert();
       section.dataset.inited = 'false';
@@ -486,138 +440,358 @@ const {
 
 <style>
   #contacto {
-    --contact-accent: var(--color-blanco);
-    --contact-glass: color-mix(in srgb, var(--color-negro-claro) 55%, transparent);
-    --contact-glass-border: color-mix(in srgb, var(--color-borde) 85%, transparent);
+    --contact-accent: var(--chapter-accent, var(--color-blanco));
+    --contact-glass: color-mix(in srgb, var(--color-neutro) 58%, transparent);
+    --contact-border: color-mix(in srgb, var(--color-blanco) 12%, transparent);
   }
 
   .contact-section {
+    position: relative;
     isolation: isolate;
+    overflow: hidden;
+    min-height: 100svh;
+    padding: clamp(3rem, 7vh, 5rem) clamp(1.25rem, 5vw, 4.5rem) 1rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-blanco) 8%, transparent);
   }
 
-  /* ── Decoración ─────────────────────────────────────── */
-  .contact-aurora {
+  .contact-toasts {
+    position: fixed;
+    top: 5.5rem;
+    right: clamp(1rem, 4vw, 2rem);
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    pointer-events: none;
+  }
+
+  :global(.contact-toast) {
+    min-width: 15rem;
+    max-width: min(22rem, 82vw);
+    padding: 0.75rem 1rem;
+    border-radius: 0.7rem;
+    border: 1px solid var(--contact-border);
+    border-left: 2px solid var(--chapter-accent);
+    background: color-mix(in srgb, var(--color-neutro) 82%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: var(--color-blanco);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateX(40px);
+    pointer-events: auto;
+  }
+
+  :global(.contact-toast--error) {
+    border-left-style: dashed;
+    border-left-color: color-mix(in srgb, var(--color-blanco) 45%, transparent);
+  }
+
+  :global(.contact-toast--success) {
+    border-left-color: var(--color-blanco);
+  }
+
+  /* ── Portal ── */
+  .contact-portal {
+    position: absolute;
+    z-index: -1;
+    top: 42%;
+    left: 50%;
+    width: min(60vw, 46rem);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0.7;
+  }
+
+  .contact-ring {
     position: absolute;
     inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 0;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--contact-accent) 16%, transparent);
+    animation: contact-spin 34s linear infinite;
   }
 
-  .contact-aurora::before {
-    content: '';
+  .contact-ring--2 {
+    inset: 12%;
+    border-style: dashed;
+    animation-duration: 26s;
+    animation-direction: reverse;
+  }
+
+  .contact-ring--3 {
+    inset: 25%;
+    animation-duration: 18s;
+    opacity: 0.7;
+  }
+
+  .contact-core {
     position: absolute;
-    width: 62%;
-    height: 58%;
-    left: 50%;
-    top: 46%;
-    transform: translate(-50%, -50%);
+    inset: 31%;
+    border-radius: 999px;
     background: radial-gradient(
       circle,
-      color-mix(in srgb, var(--contact-accent) 26%, transparent) 0%,
-      transparent 70%
+      color-mix(in srgb, var(--contact-accent) 22%, transparent),
+      transparent 68%
     );
-    filter: blur(58px);
-    animation: contact-breathe 11s ease-in-out infinite;
+    filter: blur(24px);
+    animation: contact-breathe 9s ease-in-out infinite;
   }
 
-  :global(html.light) #contacto .contact-aurora::before {
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, var(--color-blanco) 8%, transparent) 0%,
-      transparent 70%
-    );
+  @keyframes contact-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
-
 
   @keyframes contact-breathe {
-    0%,
-    100% {
-      opacity: 0.75;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    50% {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1.08);
-    }
-  }
-
-  .contact-section.is-paused .contact-aurora::before {
-    animation-play-state: paused;
+    0%, 100% { opacity: 0.55; transform: scale(0.94); }
+    50% { opacity: 1; transform: scale(1.06); }
   }
 
   .contact-grid {
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: -2;
     pointer-events: none;
+    opacity: 0.35;
     background-image:
       linear-gradient(
         to right,
-        color-mix(in srgb, var(--color-borde) 55%, transparent) 1px,
+        color-mix(in srgb, var(--color-blanco) 5%, transparent) 1px,
         transparent 1px
       ),
       linear-gradient(
         to bottom,
-        color-mix(in srgb, var(--color-borde) 55%, transparent) 1px,
+        color-mix(in srgb, var(--color-blanco) 5%, transparent) 1px,
         transparent 1px
       );
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, black, transparent 76%);
-    -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, black, transparent 76%);
-    opacity: 0.55;
+    background-size: 5rem 5rem;
+    mask-image: radial-gradient(80% 80% at 50% 40%, #000, transparent 80%);
+    -webkit-mask-image: radial-gradient(80% 80% at 50% 40%, #000, transparent 80%);
   }
 
-  .contact-kicker {
-    display: inline-flex;
+  .contact-wrap {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 84rem);
+    margin-inline: auto;
+  }
+
+  .contact-head__meta {
+    display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin: 0.9rem 0 0;
-    font-size: 1.05rem;
-    letter-spacing: 0.01em;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .contact-readout {
+    font-family: var(--font-mono);
+    font-size: 0.54rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .contact-readout span {
+    margin-left: 0.5rem;
     color: var(--contact-accent);
   }
 
-  .contact-kicker::before {
-    content: '';
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--contact-accent);
-    animation: contact-pulse 2.4s ease-out infinite;
+  .contact-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--section-title-size);
+    font-weight: 900;
+    line-height: var(--section-title-leading);
+    letter-spacing: var(--section-title-tracking);
+    text-transform: uppercase;
+    color: var(--color-blanco);
+    overflow: hidden;
   }
 
-  @keyframes contact-pulse {
-    0% {
-      box-shadow: 0 0 0 0 color-mix(in srgb, var(--contact-accent) 55%, transparent);
-    }
-    70% {
-      box-shadow: 0 0 0 12px transparent;
-    }
-    100% {
-      box-shadow: 0 0 0 0 transparent;
-    }
+  .contact-head__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.2rem 3rem;
+    margin-top: clamp(1rem, 2.5vh, 1.5rem);
+    padding-bottom: clamp(1rem, 2.5vh, 1.5rem);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-blanco) 9%, transparent);
   }
 
   .contact-desc {
+    max-width: 32rem;
     margin: 0;
+    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    line-height: 1.6;
+    color: var(--color-gris-claro);
   }
 
-  /* ── Tarjeta glass ──────────────────────────────────── */
+  .contact-mail {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-blanco);
+    font-family: var(--font-mono);
+    font-size: clamp(0.65rem, 1vw, 0.78rem);
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--contact-accent) 55%, transparent);
+    padding-bottom: 0.2rem;
+    transition: color 0.3s ease;
+  }
+
+  .contact-mail:hover {
+    color: var(--contact-accent);
+  }
+
+  .contact-mail__icon {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .contact-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 5vw, 4rem);
+    padding-top: clamp(1.25rem, 3vh, 2rem);
+  }
+
+  .contact-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.2rem;
+    max-width: 36rem;
+  }
+
+  .contact-facts > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-blanco) 9%, transparent);
+  }
+
+  .contact-facts > div:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .contact-facts span {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .contact-facts strong {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-blanco);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .contact-facts__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .contact-facts__live i {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: var(--color-blanco);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--color-blanco) 55%, transparent);
+    animation: contact-live 2s ease-in-out infinite;
+  }
+
+  @keyframes contact-live {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .contact-links {
+    margin-top: 1.6rem;
+  }
+
+  .contact-links__label {
+    display: block;
+    margin-bottom: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .contact-socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    max-width: 36rem;
+  }
+
+  .social-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 12%, transparent);
+    background: color-mix(in srgb, var(--color-neutro) 35%, transparent);
+    color: var(--color-gris-claro);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      color 0.3s ease,
+      border-color 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  .social-card:hover {
+    color: var(--color-blanco);
+    border-color: var(--contact-accent);
+    transform: translateY(-2px);
+  }
+
+  .social-icon,
+  .social-arrow {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .social-arrow {
+    opacity: 0.4;
+  }
+
   .contact-tilt {
-    perspective: 900px;
+    perspective: 1300px;
   }
 
   .contact-card {
     position: relative;
-    padding: 2.25rem;
-    border-radius: 1.25rem;
-    background: var(--contact-glass);
-    border: 1px solid var(--contact-glass-border);
-    backdrop-filter: blur(16px) saturate(150%);
-    -webkit-backdrop-filter: blur(16px) saturate(150%);
-    transform-style: preserve-3d;
+    padding: clamp(1.2rem, 2.2vw, 1.6rem);
+    border-radius: 1rem;
+    border: 1px solid var(--contact-border);
+    background:
+      linear-gradient(
+        155deg,
+        color-mix(in srgb, var(--color-blanco) 5%, transparent),
+        transparent 45%
+      ),
+      var(--contact-glass);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     overflow: hidden;
+    transform-style: preserve-3d;
+    box-shadow: 0 40px 100px -50px rgba(0, 0, 0, 0.9);
   }
 
   .contact-spotlight {
@@ -625,12 +799,12 @@ const {
     inset: 0;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.4s ease;
     background: radial-gradient(
-      240px circle at var(--mx, 50%) var(--my, 50%),
-      color-mix(in srgb, var(--contact-accent) 20%, transparent),
+      16rem circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--contact-accent) 14%, transparent),
       transparent 70%
     );
+    transition: opacity 0.4s ease;
   }
 
   .contact-card:hover .contact-spotlight {
@@ -640,65 +814,86 @@ const {
   .contact-flash {
     position: absolute;
     inset: 0;
-    pointer-events: none;
+    z-index: 3;
+    background: var(--contact-accent);
     opacity: 0;
-    background: radial-gradient(
-      circle at 50% 50%,
-      color-mix(in srgb, var(--contact-accent) 45%, transparent),
-      transparent 70%
-    );
+    pointer-events: none;
   }
 
-  :global(html.light) .contact-flash {
-    background: radial-gradient(
-      circle at 50% 50%,
-      color-mix(in srgb, var(--color-blanco) 16%, transparent),
-      transparent 70%
-    );
+  .contact-card__head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
   }
 
-  /* ── Campos con etiqueta flotante ───────────────────── */
+  .contact-card__title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-blanco);
+  }
+
+  .contact-card__note {
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+    text-align: right;
+  }
+
+  .contact-form {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
   .contact-field {
     position: relative;
+    padding-top: 0.35rem;
   }
 
   .contact-input {
     width: 100%;
-    padding: 1.6rem 0 0.7rem;
-    background: transparent;
+    padding: 0.55rem 0 0.5rem;
     border: 0;
-    outline: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-blanco) 16%, transparent);
+    background: transparent;
     color: var(--color-blanco);
-    font-size: 1rem;
     font-family: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.3s ease;
   }
 
   .contact-textarea {
-    resize: none;
-    line-height: 1.65;
+    min-height: 5rem;
+    line-height: 1.5;
   }
 
   .contact-label {
     position: absolute;
     left: 0;
-    top: 1.5rem;
-    line-height: 1;
-    color: var(--color-gris-claro);
-    font-size: 0.95rem;
+    top: 1rem;
+    font-size: 0.82rem;
+    color: var(--color-gris-oscuro);
     pointer-events: none;
+    transform-origin: left top;
     transition:
-      top 0.25s ease,
-      font-size 0.25s ease,
-      color 0.25s ease,
-      letter-spacing 0.25s ease;
+      transform 0.25s ease,
+      color 0.25s ease;
   }
 
   .contact-input:focus + .contact-label,
   .contact-input:not(:placeholder-shown) + .contact-label {
-    top: 0.25rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    transform: translateY(-1.35rem) scale(0.72);
     color: var(--contact-accent);
   }
 
@@ -706,133 +901,231 @@ const {
     position: absolute;
     left: 0;
     bottom: 0;
-    height: 2px;
     width: 100%;
+    height: 1px;
     background: var(--contact-accent);
     transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left center;
+    transition: transform 0.35s ease;
   }
 
   .contact-input:focus ~ .contact-line {
     transform: scaleX(1);
   }
 
-  /* ── Botón magnético ────────────────────────────────── */
   .contact-btn {
-    width: 100%;
-    margin-top: 1.5rem;
-    padding: 1rem;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--contact-accent) 40%, transparent);
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+    margin-top: 0.3rem;
+    padding: 0.8rem 1rem;
+    border-radius: 0.55rem;
+    border: 1px solid var(--contact-accent);
     background: var(--contact-accent);
-    color: var(--color-negro);
+    color: var(--color-neutro);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
     font-weight: 600;
-    font-size: 1rem;
-    letter-spacing: 0.01em;
-    box-shadow: 0 12px 32px -14px color-mix(in srgb, var(--contact-accent) 75%, transparent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
     transition:
-      box-shadow 0.3s ease,
-      filter 0.3s ease;
+      transform 0.3s ease,
+      background 0.3s ease;
   }
 
   .contact-btn:hover {
-    box-shadow: 0 18px 46px -14px color-mix(in srgb, var(--contact-accent) 85%, transparent);
-    filter: brightness(1.08);
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--contact-accent) 82%, var(--color-blanco));
   }
 
   .contact-btn:disabled {
-    opacity: 0.6;
-    pointer-events: none;
+    opacity: 0.5;
+    cursor: wait;
+    transform: none;
   }
 
   .contact-btn-icon {
     display: inline-flex;
   }
 
-  /* ── Socials ────────────────────────────────────────── */
-  .social-card {
-    display: block;
-    color: inherit;
-    text-decoration: none;
+  .contact-btn-icon :global(svg) {
+    width: 1rem;
+    height: 1rem;
   }
 
-  .social-inner {
-    display: flex;
-    flex-direction: column;
+  .contact-status {
+    min-height: 0.95rem;
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.4;
+    color: var(--color-gris-oscuro);
+  }
+
+  .contact-direct {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 1.6rem 1rem;
-    min-height: 8.75rem;
-    border-radius: 1rem;
-    background: var(--contact-glass);
-    border: 1px solid var(--contact-glass-border);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    transition: border-color 0.35s ease;
-  }
-
-  .social-card:hover .social-inner {
-    border-color: color-mix(in srgb, var(--contact-accent) 55%, transparent);
-  }
-
-  .social-icon {
-    width: 3.25rem;
-    height: 3.25rem;
-    display: grid;
-    place-items: center;
-    border-radius: 0.85rem;
-    background: color-mix(in srgb, var(--contact-accent) 22%, transparent);
-    border: 1px solid color-mix(in srgb, var(--contact-accent) 40%, transparent);
-  }
-
-  .social-text {
-    font-size: 0.95rem;
-    color: var(--color-secondary);
+    gap: 0.35rem;
+    margin-top: 0.7rem;
+    color: var(--color-gris-oscuro);
+    font-family: var(--font-mono);
+    font-size: 0.54rem;
+    letter-spacing: 0.08em;
+    text-decoration: none;
     transition: color 0.3s ease;
   }
 
-  .social-card:hover .social-text {
-    color: var(--color-blanco);
+  .contact-direct:hover {
+    color: var(--contact-accent);
   }
 
-  @media (max-width: 768px) {
+  .contact-direct :global(svg) {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .contact-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1.5rem;
+    margin-top: clamp(1.5rem, 4vh, 2.5rem);
+    padding-top: 1rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-blanco) 8%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .contact-foot__mid {
+    margin-left: auto;
+  }
+
+  .contact-foot a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--color-blanco);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .contact-foot a:hover {
+    color: var(--contact-accent);
+  }
+
+  .contact-foot :global(svg) {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  @media (min-width: 900px) {
+    .contact-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem);
+      align-items: start;
+    }
+
+    .contact-tilt {
+      position: sticky;
+      top: 6.5rem;
+    }
+  }
+
+  @media (min-width: 900px) and (max-height: 820px) {
+    .contact-head__foot {
+      margin-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .contact-layout {
+      padding-top: 1rem;
+    }
+
     .contact-card {
-      padding: 1.6rem;
+      padding: 1.1rem 1.35rem;
     }
 
-    .contact-socials {
-      gap: 0.75rem;
+    .contact-card__head {
+      margin-bottom: 0.6rem;
     }
 
-    .social-inner {
-      min-height: 7.25rem;
-      padding: 1.25rem 0.75rem;
+    .contact-form {
+      gap: 0.55rem;
     }
 
-    .social-icon {
-      width: 2.75rem;
-      height: 2.75rem;
+    .contact-field {
+      padding-top: 0.25rem;
+    }
+
+    .contact-input {
+      padding: 0.45rem 0 0.4rem;
+    }
+
+    .contact-textarea {
+      min-height: 4.25rem;
+    }
+
+    .contact-label {
+      top: 0.85rem;
+    }
+
+    .contact-btn {
+      margin-top: 0.2rem;
+      padding: 0.7rem 0.9rem;
+    }
+
+    .contact-status {
+      min-height: 0.8rem;
+    }
+
+    .contact-direct {
+      margin-top: 0.55rem;
+    }
+
+    .contact-foot {
+      margin-top: 1.25rem;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .contact-tilt {
+      order: -1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .contact-readout {
+      display: none;
+    }
+
+    .contact-facts {
+      grid-template-columns: 1fr;
+    }
+
+    .contact-facts > div:last-child {
+      grid-column: auto;
+    }
+
+    .contact-foot__mid {
+      display: none;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .contact-aurora::before,
-    .contact-kicker::before {
+    .contact-ring,
+    .contact-core,
+    .contact-facts__live i {
       animation: none;
     }
 
-    .contact-label,
-    .contact-line,
-    .social-inner,
-    .social-text {
+    .contact-toast,
+    .contact-btn,
+    .social-card {
       transition: none;
     }
   }
 </style>
-

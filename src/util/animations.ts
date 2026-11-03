@@ -66,8 +66,9 @@ export function animateTitleChars(selector: string, trigger?: string) {
     ease: 'power3.out',
     scrollTrigger: {
       trigger: trigger || selector,
-      start: 'top 85%',
-      toggleActions: 'play none none reset',
+      start: 'top 94%',
+      end: 'top 58%',
+      scrub: 1,
     },
   });
 }

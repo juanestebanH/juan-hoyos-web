@@ -2,132 +2,56 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import Manifesto from '../components/Manifesto.astro';
 import Tecnologias from '../components/Tecnologias.astro';
 import Proyectos from '../components/Proyectos.astro';
 import Experiencia from '../components/Experiencia.astro';
-import About from '../components/About.astro';
 import Contacto from '../components/Contacto.astro';
-import ViajeroHud from '../components/ViajeroHud.astro';
 import { es } from '../i18n/es';
 ---
 
-<Layout>
-  <div class="container-viajero">
-    <canvas id="trail-canvas"></canvas>
-    <ViajeroHud />
-    <div class="viajero-node" id="viajero"></div>
-  </div>
+<Layout
+  title="Juan Hoyos | Desarrollador Full Stack"
+  description="Portafolio de Juan Esteban Hoyos, desarrollador Full Stack en Colombia. Productos digitales completos, de la pantalla a lo que funciona por dentro."
+>
   <Header />
-  <Hero
-    subtitle={es.hero_subtitle}
-    description={es.hero_description}
-    badge={es.hero_badge}
-    btn_linkedin={es.hero_btn_linkedin}
-    btn_cv={es.hero_btn_cv}
-    cv_path={es.cv_path}
-    scroll_label={es.hero_scroll}
-  />
-  <Tecnologias
-    title={es.tecnologias_title}
-    description={es.tecnologias_description}
-    cats={es.tecnologias_cats}
-  />
-  <Proyectos
-    title={es.proyectos_title}
-    descriptions={es.projects}
-    cta={es.proyectos_cta}
-    close={es.proyectos_cerrar}
-  />
-  <Experiencia
-    title={es.experiencia_title}
-    descriptions={es.experiences}
-    labels={es.experiences_type}
-  />
-  <About
-    title={es.about.title}
-    paragraphs={es.about.paragraphs}
-    btn_cv={es.about.btn_cv}
-    cv_path={es.about.cv_path}
-  />
-  <Contacto
-    title={es.contacto_title}
-    subtitle={es.contacto_subtitle}
-    btn_email={es.contacto_btn_email}
-    description={es.contacto_description}
-    formulario_nombre={es.contacto_fomulario_nombre}
-    formulario_email={es.contacto_fomulario_email}
-    formulario_mensaje={es.contacto_fomulario_mensaje}
-  />
+  <main id="main-content" tabindex="-1">
+    <Hero
+      subtitle={es.hero_subtitle}
+      description={es.hero_description}
+      badge={es.hero_badge}
+      btn_linkedin={es.hero_btn_linkedin}
+      btn_cv={es.hero_btn_cv}
+      cv_path={es.cv_path}
+      scroll_label={es.hero_scroll}
+    />
+    <Manifesto />
+    <Tecnologias />
+    <Proyectos
+      title={es.proyectos_title}
+      descriptions={es.projects}
+      cta={es.proyectos_cta}
+      close={es.proyectos_cerrar}
+    />
+    <Experiencia
+      title={es.experiencia_title}
+      descriptions={es.experiences}
+      labels={es.experiences_type}
+    />
+    <Contacto
+      title={es.contacto_title}
+      subtitle={es.contacto_subtitle}
+      btn_email={es.contacto_btn_email}
+      description={es.contacto_description}
+      formulario_nombre={es.contacto_fomulario_nombre}
+      formulario_email={es.contacto_fomulario_email}
+      formulario_mensaje={es.contacto_fomulario_mensaje}
+    />
+  </main>
 </Layout>
 
 <script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import Lenis from 'lenis';
-  import { initViajero } from '../util/viajero';
-  import { initScrollScenes } from '../util/scrollScenes';
+  import { initPortfolioPage } from '../util/page';
 
-  gsap.registerPlugin(ScrollTrigger);
-
-  // ── LENIS ──────────────────────────────────────────────────
-  const lenis = new Lenis({ lerp: 0.08 });
-
-  (window as any).__lenis = lenis;
-
-  initScrollScenes(lenis);
-
-  lenis.on('scroll', ScrollTrigger.update);
-
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
-  gsap.ticker.lagSmoothing(0);
-
-  // Scroll bloqueado mientras el loader esté en pantalla
-  lenis.stop();
-
-  // ── VIAJERO: cinta con scroll (src/util/viajero.ts) ──────
-  window.addEventListener('load', () => initViajero());
-  document.addEventListener('astro:page-load', () => initViajero());
-
-  // ── Liberar la página al terminar el loader ──────────────
-  let released = false;
-  const release = () => {
-    if (released) return;
-    released = true;
-    ScrollTrigger.refresh();
-    lenis.start();
-  };
-  window.addEventListener('loader:done', release);
-
+  initPortfolioPage();
 </script>
-
-<style>
-  .container-viajero {
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    pointer-events: none;
-  }
-
-  #trail-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .viajero-node {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: currentColor;
-    position: absolute;
-    top: 0;
-    left: 0;
-    will-change: transform;
-    box-shadow:
-      0 0 8px currentColor,
-      0 0 20px currentColor;
-  }
-</style>

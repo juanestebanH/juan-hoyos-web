@@ -1,0 +1,72 @@
+---
+interface Props {
+  shape: 'cube' | 'pyramid' | 'torus' | 'cylinder' | 'icosa' | 'octa';
+}
+const { shape } = Astro.props;
+---
+
+<svg
+  class="stack-shape"
+  viewBox="0 0 160 120"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.2"
+  aria-hidden="true"
+>
+  {
+    shape === 'cube' && (
+      <g>
+        <path d="M44 42 80 22l36 20v38L80 100 44 80Z" />
+        <path d="M44 42l36 20 36-20M80 62v38" opacity="0.55" />
+        <path d="M58 92 94 72v-9" opacity="0.22" />
+      </g>
+    )
+  }
+  {
+    shape === 'pyramid' && (
+      <g>
+        <path d="M80 20 126 94H34Z" />
+        <path d="M80 20v74M34 94l46-30 46 30" opacity="0.5" />
+        <path d="M56 56h48" opacity="0.25" />
+      </g>
+    )
+  }
+  {
+    shape === 'torus' && (
+      <g>
+        <ellipse cx="80" cy="60" rx="46" ry="22" />
+        <ellipse cx="80" cy="60" rx="22" ry="10" opacity="0.6" />
+        <ellipse cx="80" cy="60" rx="49" ry="25" opacity="0.18" />
+        <path d="M34 60c0 17 21 31 46 31s46-14 46-31" opacity="0.35" />
+      </g>
+    )
+  }
+  {
+    shape === 'cylinder' && (
+      <g>
+        <ellipse cx="80" cy="34" rx="38" ry="13" />
+        <path d="M42 34v50c0 7 17 13 38 13s38-6 38-13V34" />
+        <path d="M42 60c0 7 17 13 38 13s38-6 38-13" opacity="0.45" />
+        <path d="M42 78c0 7 17 13 38 13s38-6 38-13" opacity="0.2" />
+      </g>
+    )
+  }
+  {
+    shape === 'icosa' && (
+      <g>
+        <path d="M80 18 126 44v44L80 104 34 88V44Z" />
+        <path d="M80 18v86M34 44l46 32 46-32M34 88l46-12 46 12" opacity="0.45" />
+        <path d="M80 18 58 55l22 9 22-9Z" opacity="0.65" />
+      </g>
+    )
+  }
+  {
+    shape === 'octa' && (
+      <g>
+        <path d="M80 16 126 60 80 104 34 60Z" />
+        <path d="M80 16v88M34 60h92" opacity="0.5" />
+        <path d="M80 16 57 60l23 44 23-44Z" opacity="0.28" />
+      </g>
+    )
+  }
+</svg>

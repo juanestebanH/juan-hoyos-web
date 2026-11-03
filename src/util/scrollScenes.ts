@@ -7,6 +7,88 @@ gsap.registerPlugin(ScrollTrigger);
 const TITLE_SELECTOR =
   '.tech-title, .project-title-anim, .timeline-title, .about-title, .contact-title';
 
+const CONTENT_SELECTOR: Record<string, string> = {
+  tecnologias: '.stack-head',
+  proyectos: '.works-head',
+  experiencia: '.exp-heading',
+  contacto: '.contact-head',
+};
+
+interface ContentMotion {
+  from: number;
+  to: number;
+  x: number;
+  scaleFrom: number;
+  scaleTo: number;
+  rotateFrom: number;
+  rotateTo: number;
+}
+
+const CONTENT_PARALLAX: Record<string, ContentMotion> = {
+  tecnologias: {
+    from: 140,
+    to: -80,
+    x: -26,
+    scaleFrom: 0.96,
+    scaleTo: 1.02,
+    rotateFrom: -1,
+    rotateTo: 1,
+  },
+  proyectos: {
+    from: 90,
+    to: -60,
+    x: 18,
+    scaleFrom: 0.97,
+    scaleTo: 1.01,
+    rotateFrom: 0.8,
+    rotateTo: -0.8,
+  },
+  experiencia: {
+    from: 150,
+    to: -95,
+    x: -24,
+    scaleFrom: 0.95,
+    scaleTo: 1.02,
+    rotateFrom: -1.1,
+    rotateTo: 1.1,
+  },
+  contacto: {
+    from: 170,
+    to: -110,
+    x: 30,
+    scaleFrom: 0.94,
+    scaleTo: 1.02,
+    rotateFrom: 1.2,
+    rotateTo: -1.2,
+  },
+};
+
+type DepthLayer = Omit<ContentMotion, 'rotateFrom' | 'rotateTo'> & {
+  selector: string;
+};
+
+const SECONDARY_PARALLAX: Record<string, DepthLayer[]> = {
+  contacto: [
+    {
+      selector: '.contact-layout',
+      from: 120,
+      to: -90,
+      x: 26,
+      scaleFrom: 0.97,
+      scaleTo: 1.02,
+    },
+  ],
+};
+
+const AMBIENT_PARALLAX: Record<
+  string,
+  Array<{ selector: string; from: number; to: number; x: number }>
+> = {
+  tecnologias: [{ selector: '.stack-bg', from: -10, to: 10, x: 44 }],
+  proyectos: [{ selector: '.works-glow', from: -14, to: 14, x: -64 }],
+  contacto: [{ selector: '.contact-grid', from: -9, to: 9, x: -48 }],
+};
+
 let teardown: (() => void) | undefined;
 
 export function initScrollScenes(lenis?: Lenis): () => void {
@@ -18,64 +100,125 @@ export function initScrollScenes(lenis?: Lenis): () => void {
   ).matches;
   const coarse = window.matchMedia('(pointer: coarse)').matches;
   const triggers: ScrollTrigger[] = [];
-  const sceneIndexes: HTMLElement[] = [];
 
   const sections = document.querySelectorAll<HTMLElement>('section[id]');
 
   sections.forEach((section) => {
-    const mark = section.querySelector<HTMLElement>('[data-scene-mark]');
-    if (!mark) return;
-
-    const rule = mark.querySelector<HTMLElement>('[data-scene-rule]');
-    const float = mark.querySelector<HTMLElement>('[data-scene-float]');
-    const index = mark.querySelector<HTMLElement>('[data-scene-index]');
-    if (!rule || !float || !index) return;
-
-    sceneIndexes.push(index);
-
-    if (reduced) {
-      gsap.set(rule, { scaleX: 1 });
-      gsap.set(index, { opacity: 0.32 });
-      return;
-    }
+    if (reduced) return;
 
     const isSmall = window.matchMedia('(max-width: 768px)').matches;
-    gsap.set(index, { yPercent: 12 });
 
-    const entrance = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: 'top 88%',
-        end: 'top 48%',
-        scrub: 0.8,
-      },
+    const contentSelector = CONTENT_SELECTOR[section.id];
+    const content = contentSelector
+      ? section.querySelector<HTMLElement>(contentSelector)
+      : null;
+    const contentRange = CONTENT_PARALLAX[section.id];
+
+    if (content && contentRange) {
+      const x = isSmall ? contentRange.x * 0.4 : contentRange.x;
+      const scaleFrom = isSmall
+        ? 1 - (1 - contentRange.scaleFrom) * 0.5
+        : contentRange.scaleFrom;
+      const scaleTo = isSmall
+        ? 1 + (contentRange.scaleTo - 1) * 0.5
+        : contentRange.scaleTo;
+      const rotateFrom = isSmall
+        ? contentRange.rotateFrom * 0.5
+        : contentRange.rotateFrom;
+      const rotateTo = isSmall
+        ? contentRange.rotateTo * 0.5
+        : contentRange.rotateTo;
+
+      const contentParallax = gsap.fromTo(
+        content,
+        {
+          y: contentRange.from,
+          x: -x,
+          scale: scaleFrom,
+          rotate: rotateFrom,
+          transformOrigin: '50% 50%',
+        },
+        {
+          y: contentRange.to,
+          x,
+          scale: scaleTo,
+          rotate: rotateTo,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        },
+      );
+      if (contentParallax.scrollTrigger) {
+        triggers.push(contentParallax.scrollTrigger);
+      }
+    }
+
+    SECONDARY_PARALLAX[section.id]?.forEach((layer) => {
+      const element = section.querySelector<HTMLElement>(layer.selector);
+      if (!element) return;
+
+      const x = isSmall ? layer.x * 0.4 : layer.x;
+      const scaleFrom = isSmall
+        ? 1 - (1 - layer.scaleFrom) * 0.5
+        : layer.scaleFrom;
+      const scaleTo = isSmall
+        ? 1 + (layer.scaleTo - 1) * 0.5
+        : layer.scaleTo;
+      const layerParallax = gsap.fromTo(
+        element,
+        {
+          y: isSmall ? layer.from * 0.55 : layer.from,
+          x: -x,
+          scale: scaleFrom,
+          transformOrigin: '50% 50%',
+        },
+        {
+          y: isSmall ? layer.to * 0.55 : layer.to,
+          x,
+          scale: scaleTo,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        },
+      );
+      if (layerParallax.scrollTrigger) {
+        triggers.push(layerParallax.scrollTrigger);
+      }
     });
 
-    entrance
-      .to(rule, { scaleX: 1, ease: 'none' }, 0)
-      .to(
-        index,
-        { opacity: isSmall ? 0.3 : 0.42, yPercent: 0, ease: 'none' },
-        0,
-      );
+    AMBIENT_PARALLAX[section.id]?.forEach((layer) => {
+      const element = section.querySelector<HTMLElement>(layer.selector);
+      if (!element) return;
 
-    const parallax = gsap.fromTo(
-      float,
-      { yPercent: -7 },
-      {
-        yPercent: 7,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 1,
+      const x = isSmall ? layer.x * 0.45 : layer.x;
+      const ambientParallax = gsap.fromTo(
+        element,
+        { yPercent: layer.from, x: -x },
+        {
+          yPercent: layer.to,
+          x,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
+          },
         },
-      },
-    );
+      );
+      if (ambientParallax.scrollTrigger) {
+        triggers.push(ambientParallax.scrollTrigger);
+      }
+    });
 
-    if (entrance.scrollTrigger) triggers.push(entrance.scrollTrigger);
-    if (parallax.scrollTrigger) triggers.push(parallax.scrollTrigger);
   });
 
   const titles = gsap.utils.toArray<HTMLElement>(TITLE_SELECTOR);
@@ -84,14 +227,6 @@ export function initScrollScenes(lenis?: Lenis): () => void {
     ? titles.map((el) =>
         gsap.quickTo(el, 'skewY', {
           duration: 0.35,
-          ease: 'power2.out',
-        }),
-      )
-    : [];
-  const indexSkew = canSkew
-    ? sceneIndexes.map((el) =>
-        gsap.quickTo(el, 'skewY', {
-          duration: 0.4,
           ease: 'power2.out',
         }),
       )
@@ -118,11 +253,9 @@ export function initScrollScenes(lenis?: Lenis): () => void {
     if (Math.abs(currentVelocity - lastApplied) < 0.0015) return;
 
     lastApplied = currentVelocity;
-    const titleAmount = currentVelocity * 1.1;
-    const indexAmount = currentVelocity * 0.55;
+    const titleAmount = currentVelocity * 1.7;
 
     for (const set of titleSkew) set(titleAmount);
-    for (const set of indexSkew) set(indexAmount);
   };
 
   if (canSkew && lenis) {
@@ -136,7 +269,6 @@ export function initScrollScenes(lenis?: Lenis): () => void {
     gsap.ticker.remove(tick);
     triggers.forEach((trigger) => trigger.kill());
     gsap.killTweensOf(titles);
-    gsap.killTweensOf(sceneIndexes);
     teardown = undefined;
   };
 

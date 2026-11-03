@@ -1,91 +1,118 @@
 ---
 import { Icon } from 'astro-icon/components';
-import SceneIndex from './SceneIndex.astro';
+import StackShape from './StackShape.astro';
+import { capabilities, techIcons } from '../data/stack';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
 
-type Cat = 'frontend' | 'backend' | 'tools';
+const lang = Astro.url.pathname.startsWith('/en') ? 'en' : 'es';
+const t = lang === 'en' ? en : es;
+const cats = t.stack.cats;
 
-const technologies: { name: string; icon: string; cat: Cat }[] = [
-  { name: 'HTML/CSS', icon: 'mdi:language-html5', cat: 'frontend' },
-  { name: 'React', icon: 'mdi:react', cat: 'frontend' },
-  { name: 'Tailwind CSS', icon: 'mdi:tailwind', cat: 'frontend' },
-  { name: 'JavaScript', icon: 'mdi:language-javascript', cat: 'frontend' },
-  { name: 'Node.js', icon: 'mdi:nodejs', cat: 'backend' },
-  { name: 'MySQL', icon: 'mdi:database', cat: 'backend' },
-  { name: 'Python', icon: 'mdi:language-python', cat: 'backend' },
-  { name: 'PHP', icon: 'mdi:language-php', cat: 'backend' },
-  { name: 'Git', icon: 'mdi:git', cat: 'tools' },
-];
-
-interface Props {
-  title: string;
-  description: string;
-  cats: { all: string; frontend: string; backend: string; tools: string };
-}
-const { title, description, cats } = Astro.props;
+const withCopy = capabilities.map((capability) => ({
+  ...capability,
+  copy: t.stack.capabilities[
+    capability.id as keyof typeof t.stack.capabilities
+  ],
+}));
 ---
 
-<section id="tecnologias" class="min-h-screen py-20 px-6 relative">
-  <div class="tech-bg" aria-hidden="true" />
-  <div class="tech-glow-wrap" aria-hidden="true">
-    <div class="tech-bg-glow" />
+<section id="tecnologias" class="stack">
+  <div class="stack-bg" aria-hidden="true"></div>
+  <div class="stack-glow" aria-hidden="true"></div>
+
+  <div class="stack-head">
+    <div>
+      <span class="act-kicker">{t.stack.kicker}</span>
+      <h2 class="stack-title" id="stack-title">{t.stack.title}</h2>
+    </div>
+    <p class="stack-lede">{t.stack.description}</p>
   </div>
-  <SceneIndex index="02" />
 
-  <div class="max-w-7xl mx-auto relative z-10">
-    <!-- Encabezado -->
-    <div class="text-start mb-12">
-      <h2 class="text-blanco mb-6 tech-title overflow-hidden">{title}</h2>
-
-      <!-- Filtros de categoría -->
-      <div class="tech-filters flex flex-wrap gap-3" role="tablist">
+  <div class="stack-deck" id="stack-deck">
+    <aside class="stack-index" aria-label={t.stack.index_label}>
+      <span class="stack-index__label">{t.stack.index_label}</span>
+      <div class="stack-index__list">
         {
-          Object.entries(cats).map(([key, label], i) => (
+          withCopy.map((capability, index) => (
             <button
+              class="stack-index__item"
               type="button"
-              class:list={['tech-filter', { 'is-active': i === 0 }]}
-              data-cat={key}
-              role="tab"
-              aria-selected={i === 0 ? 'true' : 'false'}
+              data-deck-index={index}
             >
-              {label}
+              <span class="stack-index__num">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span class="stack-index__name">{capability.copy.label}</span>
+              <span class="stack-index__dot" />
             </button>
           ))
         }
       </div>
-    </div>
+    </aside>
 
-    <!-- Grid -->
-    <div class="tech-grid grid grid-cols-2 md:grid-cols-4 gap-5">
-      {
-        technologies.map((tech, i) => (
-          <article class="group tech-card" data-cat={tech.cat}>
-            <div
-              class="tech-box h-full min-h-32 flex flex-col gap-2 items-center justify-center text-center
-                     p-5 border border-borde
-                     transition-colors duration-300"
-            >
-              <span class="tech-index">{String(i + 1).padStart(2, '0')}</span>
+    <div class="stack-stage">
+      <div class="stack-stage__head">
+        <span class="stack-stage__counter">
+          <span id="deck-current">01</span>
+          <span class="stack-stage__slash">/</span>
+          <span>{String(withCopy.length).padStart(2, '0')}</span>
+        </span>
+        <span class="stack-stage__name" id="deck-name">
+          {withCopy[0].copy.label}
+        </span>
+        <span class="stack-stage__hint">{t.stack.hint}</span>
+      </div>
 
-              <Icon
-                name={tech.icon}
-                class="tech-icon w-9 h-9 text-gris-oscuro group-hover:text-blanco transition-all duration-300"
-              />
+      <div class="stack-grid" id="skill-grid">
+        {
+          withCopy.map((capability, index) => (
+            <article class="skill-card" data-index={index}>
+              <div class="skill-card__top">
+                <span class="skill-card__num">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span class="skill-card__cat">{cats[capability.category]}</span>
+              </div>
 
-              <p class="tech-name text-gris-oscuro group-hover:text-blanco transition-colors duration-300">
-                {tech.name}
-              </p>
-            </div>
-          </article>
-        ))
-      }
-    </div>
+              <div class="skill-card__shape">
+                <StackShape shape={capability.shape} />
+                <span class="skill-card__scan" aria-hidden="true" />
+              </div>
 
-    <!-- Bloque final -->
-    <div class="tech-footer mt-12 p-8 border border-borde bg-negro-claro">
-      <span class="tech-footer-line" aria-hidden="true" />
-      <p class="text-gris-oscuro text-center">
-        {description}
-      </p>
+              <div class="skill-card__body">
+                <h3 class="skill-card__title">{capability.copy.label}</h3>
+                <p class="skill-card__desc">{capability.copy.desc}</p>
+
+                <div class="skill-card__techs">
+                  {capability.techs.map((tech) => (
+                    <div class="skill-tech">
+                      <Icon
+                        name={techIcons[tech] ?? 'mdi:code-tags'}
+                        class="skill-tech__icon"
+                      />
+                      <span>{tech}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div class="skill-card__level">
+                  <span class="skill-card__level-track">
+                    <span
+                      class="skill-card__level-fill"
+                      data-level={capability.level}
+                    />
+                  </span>
+                  <span class="skill-card__level-num">
+                    {capability.level}
+                    <small>%</small>
+                  </span>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </div>
     </div>
   </div>
 </section>
@@ -93,445 +120,829 @@ const { title, description, cats } = Astro.props;
 <script>
   import gsap from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { animateTitleChars } from '../util/animations';
-  import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
-  import { Flip } from 'gsap/Flip';
-  import { CustomEase } from 'gsap/CustomEase';
-  import { CustomWiggle } from 'gsap/CustomWiggle';
+  import { splitMaskWords } from '../util/text';
 
-  gsap.registerPlugin(ScrollTrigger, ScrambleTextPlugin, Flip, CustomEase, CustomWiggle);
+  gsap.registerPlugin(ScrollTrigger);
 
-  let techCtx;
+  let ctx: gsap.Context | undefined;
+  let inited = false;
 
-  function initTech() {
-    if (techCtx) return;
-    const section = document.querySelector('#tecnologias');
-    if (!section) return;
+  function initStack() {
+    const section = document.getElementById('tecnologias');
+    if (!section || inited) return;
+    inited = true;
 
-    const reduceM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduced = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     const coarse = window.matchMedia('(pointer: coarse)').matches;
+    const cards = Array.from(
+      section.querySelectorAll<HTMLElement>('.skill-card'),
+    );
+    const indexButtons = Array.from(
+      section.querySelectorAll<HTMLElement>('[data-deck-index]'),
+    );
+    const deckName = document.getElementById('deck-name');
+    const deckCurrent = document.getElementById('deck-current');
+    const titleWords = splitMaskWords(document.getElementById('stack-title'));
 
-    try {
-      CustomWiggle.create('techWiggle', { wiggles: 2, type: 'easeOut' });
-    } catch (e) {
-      console.warn('CustomWiggle no disponible', e);
-    }
-
-    techCtx = gsap.context(() => {
-      const cards = gsap.utils.toArray('.tech-card');
-      const grid = section.querySelector('.tech-grid');
-      const footer = section.querySelector('.tech-footer');
-      const footerLine = section.querySelector('.tech-footer-line');
-      const bg = section.querySelector('.tech-bg');
-      const glowWrap = section.querySelector('.tech-glow-wrap');
-
-      // ── 1. TÍTULO: reveal char por char ──────────
-      if (!reduceM) {
-        animateTitleChars('.tech-title', '.tech-title');
-      }
-
-      // ── 2. REVEAL: bloom radial + máscara + números ──────────
-      const columns = () => {
-        if (!grid) return 4;
-        const n = window
-          .getComputedStyle(grid)
-          .gridTemplateColumns.split(' ').filter(Boolean).length;
-        return n || 4;
-      };
-
-      if (!reduceM && cards.length) {
-        gsap.set(cards, { opacity: 0, y: 30, clipPath: 'inset(100% 0 0 0)' });
-        if (footer)
-          gsap.set(footer, { opacity: 0, y: 40, clipPath: 'inset(0 0 100% 0)' });
-        if (footerLine) gsap.set(footerLine, { scaleX: 0, transformOrigin: 'left center' });
-
-        const tl = gsap.timeline({
+    ctx = gsap.context(() => {
+      if (!reduced) {
+        gsap.from(titleWords, {
+          yPercent: 115,
+          duration: 0.95,
+          stagger: 0.08,
+          ease: 'expo.out',
           scrollTrigger: {
-            trigger: '.tech-grid',
-            start: 'top 70%',
-            toggleActions: 'play none none reset',
+            trigger: '.stack-head',
+            start: 'top 92%',
+            end: 'top 54%',
+            scrub: 1,
           },
         });
 
-        tl.to(cards, {
-          opacity: 1,
-          y: 0,
-          clipPath: 'inset(0% 0 0 0)',
-          duration: 0.7,
-          stagger: {
-            each: 0.08,
-            from: 'center',
-            grid: [columns(), Math.ceil(cards.length / columns())],
-          },
-          ease: 'power2.out',
-        });
-
-        if (footerLine) tl.to(footerLine, { scaleX: 1, duration: 0.6, ease: 'power2.out' }, '-=0.2');
-        if (footer) tl.to(footer, { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }, '-=0.4');
-      }
-
-      // ── 3. HOVER: tilt + linterna + scramble + wiggle + foco ─
-      if (!reduceM && !coarse && cards.length) {
-        cards.forEach((card) => {
-          const box = card.querySelector('.tech-box');
-          const nameEl = card.querySelector('.tech-name');
-          const iconEl = card.querySelector('.tech-icon');
-          const original = nameEl?.textContent || '';
-          if (!box) return;
-
-          card.addEventListener('mousemove', (e) => {
-            const { left, top, width, height } = card.getBoundingClientRect();
-            const x = e.clientX - left;
-            const y = e.clientY - top;
-
-            gsap.to(box, {
-              rotateY: ((x - width / 2) / (width / 2)) * 8,
-              rotateX: ((height / 2 - y) / (height / 2)) * 8,
-              scale: 1.04,
-              duration: 0.4,
-              overwrite: 'auto',
-            });
-
-            const isLight = document.documentElement.classList.contains('light');
-            const glowColor = isLight
-              ? 'rgba(74, 85, 104, 0.12)'
-              : 'rgba(255,255,255,0.08)';
-            const shadowColor = isLight
-              ? 'rgba(0,0,0,0.10)'
-              : 'rgba(255,255,255,0.08)';
-
-            box.style.background = `radial-gradient(circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`;
-            box.style.boxShadow = `0 8px 15px ${shadowColor}, 0 4px 6px ${shadowColor}`;
-          });
-
-          card.addEventListener('mouseenter', () => {
-            if (nameEl && original) {
-              gsap.to(nameEl, {
-                duration: 0.6,
-                scrambleText: { text: original, chars: 'upperCase', speed: 0.5 },
-              });
-            }
-            if (iconEl) {
-              gsap.to(iconEl, { x: 6, duration: 0.8, ease: 'techWiggle' });
-            }
-          });
-
-          card.addEventListener('mouseleave', () => {
-            gsap.to(box, {
-              rotateX: 0,
-              rotateY: 0,
-              scale: 1,
-              duration: 0.6,
-              ease: 'power2.out',
-              overwrite: 'auto',
-            });
-            box.style.background = '';
-            box.style.boxShadow = '';
-          });
-        });
-
-        // Foco por proximidad
-        if (grid) {
-          const setters = cards.map((c) =>
-            gsap.quickTo(c, 'opacity', { duration: 0.3, ease: 'power2.out' }),
-          );
-          grid.addEventListener('mousemove', (e) => {
-            cards.forEach((card, i) => {
-              const r = card.getBoundingClientRect();
-              const d = Math.hypot(
-                e.clientX - (r.left + r.width / 2),
-                e.clientY - (r.top + r.height / 2),
-              );
-              const t = gsap.utils.clamp(0, 1, 1 - d / 360);
-              setters[i](0.7 + 0.3 * t);
-            });
-          });
-          grid.addEventListener('mouseleave', () => setters.forEach((s) => s(1)));
-        }
-      }
-
-      // ── 4. CATEGORÍAS: filtros animados + GSAP Flip ──────────
-      const filterButtons = gsap.utils.toArray('.tech-filter');
-
-      if (!reduceM && filterButtons.length) {
-        gsap.from(filterButtons, {
-          y: 14,
+        gsap.from('.stack-lede', {
+          y: 54,
+          x: 24,
           opacity: 0,
-          duration: 0.5,
-          stagger: 0.06,
+          duration: 0.8,
           ease: 'power2.out',
           scrollTrigger: {
-            trigger: '.tech-filters',
-            start: 'top 88%',
-            toggleActions: 'play none none reset',
+            trigger: '.stack-head',
+            start: 'top 92%',
+            end: 'top 58%',
+            scrub: 1,
           },
         });
-
-        if (!coarse) {
-          filterButtons.forEach((btn) => {
-            btn.addEventListener('mouseenter', () =>
-              gsap.to(btn, { y: -2, duration: 0.25, ease: 'power2.out' }),
-            );
-            btn.addEventListener('mouseleave', () =>
-              gsap.to(btn, { y: 0, duration: 0.25, ease: 'power2.out' }),
-            );
-          });
-        }
       }
 
-      const applyFilter = (cat) => {
-        const fromH = grid ? grid.offsetHeight : 0;
-        const state = reduceM ? null : Flip.getState(cards);
-        cards.forEach((card) => {
-          const show = cat === 'all' || card.dataset.cat === cat;
-          card.style.display = show ? '' : 'none';
-        });
-        filterButtons.forEach((btn) => {
-          const active = btn.dataset.cat === cat;
-          btn.classList.toggle('is-active', active);
-          btn.setAttribute('aria-selected', active ? 'true' : 'false');
-        });
-
-        if (!reduceM) {
-          const activeBtn = filterButtons.find((b) => b.classList.contains('is-active'));
-          if (activeBtn) {
-            gsap.fromTo(
-              activeBtn,
-              { scale: 0.92 },
-              { scale: 1, duration: 0.4, ease: 'back.out(2.2)', overwrite: 'auto' },
-            );
-          }
+      cards.forEach((card) => {
+        const fill = card.querySelector<HTMLElement>('.skill-card__level-fill');
+        if (!fill) return;
+        const level = Number(fill.dataset.level ?? 0);
+        if (reduced) {
+          gsap.set(fill, { scaleX: level / 100 });
+          return;
         }
-
-        if (!reduceM && state) {
-          Flip.from(state, {
-            duration: 0.5,
-            ease: 'power2.inOut',
-            stagger: 0.02,
-          });
-        }
-
-        const toH = grid ? grid.offsetHeight : 0;
-        if (!reduceM && grid && fromH !== toH) {
-          gsap.set(grid, { overflow: 'hidden' });
-          gsap.fromTo(
-            grid,
-            { height: fromH },
-            {
-              height: toH,
-              duration: 0.5,
-              ease: 'power2.inOut',
-              onComplete: () => {
-                gsap.set(grid, { clearProps: 'height,overflow' });
-                ScrollTrigger.refresh();
-              },
-            },
-          );
-        } else {
-          ScrollTrigger.refresh();
-        }
-      };
-      filterButtons.forEach((btn) =>
-        btn.addEventListener('click', () => applyFilter(btn.dataset.cat || 'all')),
-      );
-
-      // ── 5. FONDO: bandas de luz que recorren la rejilla ─────
-      if (!reduceM && glowWrap) {
-        ScrollTrigger.create({
-          trigger: section,
-          start: 'top bottom',
-          end: 'bottom top',
-          onToggle: (self) => glowWrap.classList.toggle('is-paused', !self.isActive),
-        });
-      }
-      if (!reduceM && bg) {
         gsap.fromTo(
-          bg,
-          { backgroundPositionY: '0%' },
+          fill,
+          { scaleX: 0 },
           {
-            backgroundPositionY: '25%',
-            ease: 'none',
+            scaleX: level / 100,
+            duration: 1,
+            ease: 'power2.out',
             scrollTrigger: {
-              trigger: section,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: true,
+              trigger: card,
+              start: 'top 84%',
+              toggleActions: 'play none none reset',
             },
           },
         );
+      });
+
+      const mm = gsap.matchMedia();
+
+      mm.add(
+        '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
+        () => {
+          const grid = section.querySelector<HTMLElement>('#skill-grid');
+          const deck = section.querySelector<HTMLElement>('#stack-deck');
+          if (!grid || !deck) return;
+
+          // Estado final de cada carta según cuál esté activa (el "abanico")
+          const stateFor = (index: number, activeIndex: number) => {
+            const offset = index - activeIndex;
+            const abs = Math.abs(offset);
+            return {
+              x: offset * 86,
+              y: abs * 26,
+              rotate: offset * 3.4,
+              scale: Math.max(0.6, 1 - abs * 0.085),
+              opacity: abs > 2 ? 0 : 1 - abs * 0.24,
+              filter:
+                offset === 0
+                  ? 'blur(0px)'
+                  : `blur(${Math.min(abs * 1.8, 5)}px)`,
+              zIndex: 30 - abs,
+            };
+          };
+
+          const apply = (active: number, duration = 0.7) => {
+            cards.forEach((card, index) => {
+              const isActive = index === active;
+              gsap.to(card, {
+                ...stateFor(index, active),
+                duration,
+                ease: 'power3.out',
+                overwrite: 'auto',
+              });
+              card.classList.toggle('is-active', isActive);
+              card.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+            });
+
+            indexButtons.forEach((button, index) => {
+              button.classList.toggle('is-active', index === active);
+            });
+
+            if (deckName) {
+              deckName.textContent =
+                cards[active]?.querySelector('.skill-card__title')
+                  ?.textContent || '';
+            }
+            if (deckCurrent) {
+              deckCurrent.textContent = String(active + 1).padStart(2, '0');
+            }
+          };
+
+          let active = 0;
+          let trigger: ScrollTrigger | undefined;
+
+          apply(0, 0);
+
+          // ── Entrada: las cartas llegan apiladas desde abajo y se abren en abanico ──
+          const entrance = gsap.timeline({ paused: true });
+
+          cards.forEach((card, index) => {
+            const final = stateFor(index, 0);
+            entrance.fromTo(
+              card,
+              {
+                x: 0,
+                y: 170 + index * 14,
+                rotate: index % 2 === 0 ? -9 : 9,
+                scale: 0.7,
+                opacity: 0,
+                filter: 'blur(10px)',
+                zIndex: final.zIndex,
+              },
+              {
+                ...final,
+                duration: 1.25,
+                ease: 'expo.out',
+              },
+              index * 0.1,
+            );
+          });
+
+          entrance
+            .from(
+              '.stack-stage__head',
+              { y: 22, opacity: 0, duration: 0.7, ease: 'power3.out' },
+              0,
+            )
+            .from(
+              '.stack-index__item',
+              {
+                x: -30,
+                opacity: 0,
+                duration: 0.7,
+                stagger: 0.07,
+                ease: 'power3.out',
+              },
+              0.15,
+            )
+            .from(
+              cards[0].querySelectorAll(
+                '.skill-card__top, .skill-card__shape, .skill-card__title, .skill-card__desc, .skill-tech, .skill-card__level',
+              ),
+              {
+                y: 24,
+                opacity: 0,
+                duration: 0.7,
+                stagger: 0.04,
+                ease: 'power3.out',
+              },
+              0.55,
+            );
+
+          // Se reproduce al entrar el bloque a pantalla y se revierte al subir,
+          // así vuelve a animarse cada vez. Se crea ANTES del pin.
+          ScrollTrigger.create({
+            trigger: deck,
+            start: 'top 78%',
+            animation: entrance,
+            toggleActions: 'play none none reverse',
+          });
+
+          trigger = ScrollTrigger.create({
+            trigger: deck,
+            start: 'top 12%',
+            end: () => `+=${Math.round(window.innerHeight * 2.2)}`,
+            pin: true,
+            scrub: 0.7,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const next = Math.min(
+                cards.length - 1,
+                Math.floor(self.progress * cards.length + 0.0001),
+              );
+              if (next !== active) {
+                active = next;
+                apply(active);
+              }
+            },
+          });
+
+          const onIndexClick = (event: Event) => {
+            const button = event.currentTarget as HTMLElement;
+            const index = Number(button.dataset.deckIndex ?? 0);
+            if (!trigger) return;
+            const span = trigger.end - trigger.start;
+            const top =
+              trigger.start +
+              (cards.length <= 1
+                ? 0
+                : (index / (cards.length - 1)) * span * 0.98) +
+              2;
+            const lenis = (window as unknown as { __lenis?: any }).__lenis;
+            if (lenis) lenis.scrollTo(top, { duration: 1.1 });
+            else window.scrollTo({ top, behavior: 'smooth' });
+          };
+          indexButtons.forEach((button) =>
+            button.addEventListener('click', onIndexClick),
+          );
+
+          return () => {
+            trigger?.kill();
+            indexButtons.forEach((button) =>
+              button.removeEventListener('click', onIndexClick),
+            );
+            gsap.set(cards, { clearProps: 'transform,opacity,filter,zIndex' });
+            cards.forEach((card) => card.removeAttribute('aria-hidden'));
+          };
+        },
+      );
+
+      mm.add(
+        '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
+        () => {
+          cards.forEach((card, cardIndex) => {
+            gsap.from(card, {
+              y: 90,
+              scale: 0.92,
+              rotate: cardIndex % 2 === 0 ? 2 : -2,
+              opacity: 0,
+              filter: 'blur(8px)',
+              duration: 0.95,
+              delay: (cardIndex % 2) * 0.12,
+              ease: 'expo.out',
+              scrollTrigger: {
+                trigger: card,
+                start: 'top 88%',
+                toggleActions: 'play none none reverse',
+              },
+            });
+          });
+          cards.forEach((card) => card.classList.add('is-active'));
+        },
+      );
+
+      if (reduced) {
+        cards.forEach((card) => card.classList.add('is-active'));
       }
-    }, '#tecnologias');
+
+      if (!reduced && !coarse) {
+        cards.forEach((card) => {
+          const shape = card.querySelector<HTMLElement>('.skill-card__shape');
+          const scan = card.querySelector<HTMLElement>('.skill-card__scan');
+          card.addEventListener('pointermove', (event) => {
+            const rect = card.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width - 0.5;
+            const y = (event.clientY - rect.top) / rect.height - 0.5;
+            if (shape) {
+              gsap.to(shape, {
+                rotateY: x * 12,
+                rotateX: -y * 10,
+                duration: 0.5,
+                ease: 'power2.out',
+                overwrite: 'auto',
+              });
+            }
+            if (scan) {
+              gsap.to(scan, {
+                yPercent: (y + 0.5) * 160,
+                opacity: 0.75,
+                duration: 0.4,
+                overwrite: 'auto',
+              });
+            }
+          });
+          card.addEventListener('pointerleave', () => {
+            if (shape) {
+              gsap.to(shape, {
+                rotateX: 0,
+                rotateY: 0,
+                duration: 0.7,
+                ease: 'power3.out',
+              });
+            }
+            if (scan) gsap.to(scan, { opacity: 0, duration: 0.3 });
+          });
+        });
+      }
+
+      if (!reduced) {
+        gsap.to('.stack-glow', {
+          yPercent: 38,
+          xPercent: 6,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1,
+          },
+        });
+      }
+
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top bottom',
+        end: 'bottom top',
+        onToggle: (self) =>
+          section.classList.toggle('is-paused', !self.isActive),
+      });
+    }, section);
+
+    window.addEventListener(
+      'astro:before-swap',
+      () => {
+        ctx?.revert();
+        ctx = undefined;
+        inited = false;
+      },
+      { once: true },
+    );
   }
 
-  document.addEventListener('astro:before-swap', () => {
-    techCtx?.revert();
-    techCtx = undefined;
-  });
-
-  // Eventos de Astro
-  document.addEventListener('astro:page-load', initTech);
-
-  if (document.readyState !== 'loading') {
-    initTech();
-  }
+  document.addEventListener('astro:page-load', initStack);
+  if (document.readyState !== 'loading') initStack();
+  else document.addEventListener('DOMContentLoaded', initStack);
 </script>
 
 <style>
-  #tecnologias {
-    overflow-anchor: none;
-    --tech-glow: rgba(255,255,255,0.2);
+  .stack {
+    --stack-accent: var(--chapter-accent);
+    position: relative;
+    padding: clamp(5rem, 11vh, 8rem) clamp(1.25rem, 5vw, 4.5rem);
+    isolation: isolate;
   }
 
-  :global(html.light) #tecnologias {
-    --tech-glow: rgba(0, 0, 0, 0.16);
-  }
-
-  /* ── Fondo animado ─────────────────────────────────────── */
-  .tech-bg {
+  .stack-bg {
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: -2;
     pointer-events: none;
-    opacity: 0.25;
+    opacity: 0.3;
     background-image:
-      linear-gradient(var(--color-borde) 1px, transparent 1px),
-      linear-gradient(90deg, var(--color-borde) 1px, transparent 1px);
-    background-size: 64px 64px;
-    background-position: 0 0;
-    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 40%, #000, transparent 78%);
-    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000, transparent 75%);
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--color-blanco) 6%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-blanco) 6%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 72px 72px;
+    mask-image: radial-gradient(
+      ellipse 70% 65% at 50% 45%,
+      #000,
+      transparent 78%
+    );
+    -webkit-mask-image: radial-gradient(
+      ellipse 70% 65% at 50% 45%,
+      #000,
+      transparent 78%
+    );
   }
-  .tech-glow-wrap {
+
+  .stack-glow {
     position: absolute;
-    inset: 0;
-    z-index: 0;
+    inset: 8% 0 18%;
+    z-index: -1;
     pointer-events: none;
-    filter: drop-shadow(0 0 6px var(--tech-glow));
+    background: radial-gradient(
+      38% 48% at 62% 48%,
+      color-mix(in srgb, var(--stack-accent) 12%, transparent),
+      transparent 70%
+    );
+    filter: blur(55px);
   }
-  .tech-bg-glow {
-    position: absolute;
-    inset: 0;
+
+  .stack-head {
+    width: min(100%, 90rem);
+    margin: 0 auto clamp(2.5rem, 7vh, 5rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 4rem;
+  }
+
+  .stack-title {
+    margin: 1rem 0 0;
+    font-family: var(--font-display);
+    font-size: var(--section-title-size);
+    font-weight: 900;
+    line-height: var(--section-title-leading);
+    letter-spacing: var(--section-title-tracking);
+    text-transform: uppercase;
+    color: var(--color-blanco);
     overflow: hidden;
-    opacity: 0.75;
-    -webkit-mask-image:
-      linear-gradient(#000 1px, transparent 1px),
-      linear-gradient(90deg, #000 1px, transparent 1px);
-    mask-image:
-      linear-gradient(#000 1px, transparent 1px),
-      linear-gradient(90deg, #000 1px, transparent 1px);
-    -webkit-mask-size: 64px 64px;
-    mask-size: 64px 64px;
-    -webkit-mask-repeat: repeat;
-    mask-repeat: repeat;
-    -webkit-mask-composite: source-over;
-    mask-composite: add;
   }
-  .tech-bg-glow::before,
-  .tech-bg-glow::after {
+
+  .stack-lede {
+    max-width: 25rem;
+    margin: 0;
+    font-size: clamp(0.92rem, 1.3vw, 1.05rem);
+    line-height: 1.6;
+    color: var(--color-gris-claro);
+  }
+
+  .stack-deck {
+    width: min(100%, 90rem);
+    margin: 0 auto;
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .stack-index {
+    display: none;
+  }
+
+  .stack-index__label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .stack-index__list {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1.25rem;
+    border-top: 1px solid
+      color-mix(in srgb, var(--color-blanco) 10%, transparent);
+  }
+
+  .stack-index__item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--color-blanco) 8%, transparent);
+    background: transparent;
+    text-align: left;
+    color: var(--color-gris-oscuro);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+
+  .stack-index__num {
+    font-size: 0.55rem;
+    opacity: 0.6;
+  }
+
+  .stack-index__name {
+    flex: 1;
+  }
+
+  .stack-index__dot {
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--stack-accent);
+    opacity: 0.35;
+    transition:
+      opacity 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  .stack-index__item:hover {
+    color: var(--color-blanco);
+  }
+
+  .stack-index__item.is-active {
+    color: var(--stack-accent);
+  }
+
+  .stack-index__item.is-active .stack-index__dot {
+    opacity: 1;
+    transform: scale(1.4);
+    box-shadow: 0 0 14px
+      color-mix(in srgb, var(--stack-accent) 60%, transparent);
+  }
+
+  .stack-stage {
+    position: relative;
+    min-width: 0;
+  }
+
+  .stack-stage__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gris-oscuro);
+  }
+
+  .stack-stage__counter {
+    color: var(--stack-accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stack-stage__slash {
+    opacity: 0.4;
+    margin: 0 0.1rem;
+  }
+
+  .stack-stage__name {
+    color: var(--color-gris-claro);
+  }
+
+  .stack-stage__hint {
+    margin-left: auto;
+    display: none;
+  }
+
+  .stack-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .skill-card {
+    position: relative;
+    min-height: 22rem;
+    padding: 1.4rem;
+    border-radius: 1.1rem;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 13%, transparent);
+    background:
+      linear-gradient(
+        150deg,
+        color-mix(in srgb, var(--color-blanco) 7%, transparent),
+        transparent 46%
+      ),
+      color-mix(in srgb, var(--color-neutro) 72%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow: hidden;
+    will-change: transform, opacity, filter;
+    transition: border-color 0.4s ease;
+  }
+
+  .skill-card::before {
     content: '';
     position: absolute;
-    inset: -60%;
-    will-change: transform;
-  }
-  .tech-bg-glow::before {
-    background: linear-gradient(
-      115deg,
-      transparent calc(50% - 75px),
-      var(--tech-glow) 50%,
-      transparent calc(50% + 75px)
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      55% 45% at 70% 30%,
+      color-mix(in srgb, var(--color-blanco) 9%, transparent),
+      transparent 70%
     );
-    animation: techSweepA 17s linear infinite;
-  }
-  .tech-bg-glow::after {
-    background: linear-gradient(
-      65deg,
-      transparent calc(50% - 75px),
-      var(--tech-glow) 50%,
-      transparent calc(50% + 75px)
-    );
-    animation: techSweepB 23s linear infinite reverse;
-  }
-  .tech-glow-wrap.is-paused .tech-bg-glow::before,
-  .tech-glow-wrap.is-paused .tech-bg-glow::after {
-    animation-play-state: paused;
-  }
-  @keyframes techSweepA {
-    from {
-      transform: translate3d(-70%, -45%, 0);
-    }
-    to {
-      transform: translate3d(70%, 45%, 0);
-    }
-  }
-  @keyframes techSweepB {
-    from {
-      transform: translate3d(55%, 65%, 0);
-    }
-    to {
-      transform: translate3d(-55%, -65%, 0);
-    }
+    opacity: 0.55;
   }
 
-  /* ── Filtros ────────────────────────────────────────────── */
-  .tech-filter {
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
+  .skill-card.is-active {
+    border-color: color-mix(in srgb, var(--color-blanco) 32%, transparent);
+    box-shadow: 0 30px 80px -52px
+      color-mix(in srgb, var(--color-blanco) 55%, transparent);
+  }
+
+  .skill-card__top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    padding: 0.45rem 1rem;
-    border: 1px solid var(--color-borde);
-    border-radius: 9999px;
     color: var(--color-gris-oscuro);
-    background: transparent;
-    transition:
-      color 0.25s ease,
-      border-color 0.25s ease,
-      background 0.25s ease;
-  }
-  .tech-filter:hover {
-    color: var(--color-blanco);
-    border-color: var(--color-gris-oscuro);
-  }
-  .tech-filter.is-active {
-    color: var(--color-blanco);
-    border-color: var(--color-blanco);
-    background: color-mix(in srgb, var(--color-blanco) 10%, transparent);
   }
 
-  /* ── Tarjetas ───────────────────────────────────────────── */
-  .tech-box {
-    position: relative;
-    will-change: transform;
+  .skill-card__num {
+    color: var(--color-blanco);
   }
-  .tech-index {
+
+  .skill-card__cat {
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 20%, transparent);
+    color: var(--color-gris-claro);
+    background: color-mix(in srgb, var(--color-blanco) 4%, transparent);
+  }
+
+  .skill-card__shape {
+    position: relative;
+    height: 6.8rem;
+    margin: 0.9rem 0 0.5rem;
+    display: grid;
+    place-items: center;
+    color: var(--color-blanco);
+    transform-style: preserve-3d;
+    perspective: 500px;
+  }
+
+  .skill-card__shape :global(.stack-shape) {
+    width: min(12rem, 70%);
+    height: auto;
+    filter: drop-shadow(
+      0 0 18px color-mix(in srgb, var(--color-blanco) 26%, transparent)
+    );
+    animation: shape-float 7s ease-in-out infinite;
+  }
+
+  .skill-card:nth-child(even) .skill-card__shape :global(.stack-shape) {
+    animation-delay: -3s;
+  }
+
+  @keyframes shape-float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-1deg);
+    }
+    50% {
+      transform: translateY(-8px) rotate(1deg);
+    }
+  }
+
+  .skill-card__scan {
     position: absolute;
-    top: 0.9rem;
-    right: 1rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    color: var(--color-gris-oscuro);
-    opacity: 0.7;
+    left: 10%;
+    right: 10%;
+    top: 0;
+    height: 1px;
+    opacity: 0;
+    background: var(--color-blanco);
+    box-shadow: 0 0 12px
+      color-mix(in srgb, var(--color-blanco) 60%, transparent);
+    pointer-events: none;
   }
 
-  /* ── Footer ─────────────────────────────────────────────── */
-  .tech-footer {
+  .skill-card__body {
     position: relative;
+    z-index: 2;
+  }
+
+  .skill-card__title {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.35rem, 2vw, 1.7rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--color-blanco);
+  }
+
+  .skill-card__desc {
+    margin: 0 0 1rem;
+    font-size: 0.87rem;
+    line-height: 1.55;
+    color: var(--color-gris-claro);
+  }
+
+  .skill-card__techs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .skill-tech {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.55rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--color-blanco) 10%, transparent);
+    background: color-mix(in srgb, var(--color-blanco) 4%, transparent);
+    color: var(--color-gris-claro);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .skill-tech__icon {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-blanco);
+    opacity: 0.86;
+  }
+
+  .skill-card__level {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .skill-card__level-track {
+    flex: 1;
+    height: 2px;
+    background: color-mix(in srgb, var(--color-blanco) 12%, transparent);
     overflow: hidden;
   }
-  .tech-footer-line {
-    position: absolute;
-    left: 0;
-    top: 0;
+
+  .skill-card__level-fill {
     display: block;
-    width: 100%;
-    height: 2px;
+    height: 100%;
     background: var(--color-blanco);
+    transform-origin: left center;
+    box-shadow: 0 0 10px
+      color-mix(in srgb, var(--color-blanco) 45%, transparent);
+  }
+
+  .skill-card__level-num {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--color-gris-claro);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .skill-card__level-num small {
+    font-size: 0.7em;
+    color: var(--color-blanco);
+  }
+
+  @media (min-width: 640px) {
+    .stack-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .stack-deck {
+      grid-template-columns: 16rem minmax(0, 42rem);
+      justify-content: center;
+      gap: 3.5rem;
+      align-items: start;
+    }
+
+    .stack-index {
+      display: block;
+      padding-top: 2.5rem;
+    }
+
+    .stack-grid {
+      position: relative;
+      display: block;
+      height: clamp(31rem, 66vh, 38rem);
+      perspective: 1200px;
+    }
+
+    .skill-card {
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: min(100%, 38rem);
+      min-height: 30rem;
+    }
+
+    .stack-stage__hint {
+      display: inline;
+    }
+  }
+
+  @media (min-width: 1440px) {
+    .skill-card {
+      width: 40rem;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .stack-stage__head {
+      margin-bottom: 1rem;
+    }
+
+    .skill-card {
+      min-height: 0;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tech-bg,
-    .tech-glow-wrap {
+    .skill-card__shape :global(.stack-shape) {
+      animation: none;
+    }
+
+    .stack-glow {
       display: none;
     }
   }
 </style>
-
