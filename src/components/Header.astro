@@ -50,16 +50,6 @@ const copy = chapters.map((chapter) => ({
         <span data-sfx-label>SFX</span>
       </button>
 
-      <button
-        id="pulse-btn"
-        class="hud__tool hud__tool--pulse"
-        type="button"
-        aria-label={lang === 'es' ? 'Pulsar el mundo' : 'Pulse the world'}
-      >
-        <Icon name="mdi:lightning-bolt" class="hud__icon" />
-        <span>PULSE</span>
-      </button>
-
       <a id="idioma" class="hud__tool hud__lang" href={switchPath} aria-label="Language">
         {lang === 'es' ? 'EN' : 'ES'}
       </a>
@@ -145,9 +135,6 @@ const copy = chapters.map((chapter) => ({
         aria-pressed="false"
       >
         <span data-sfx-label>SFX OFF</span>
-      </button>
-      <button id="pulse-btn-mobile" class="hud-menu__tool" type="button">
-        PULSE
       </button>
       <a class="hud-menu__tool" href={switchPath}>
         {lang === 'es' ? 'ENGLISH' : 'ESPAÑOL'}
@@ -323,19 +310,6 @@ const copy = chapters.map((chapter) => ({
     }),
   );
   paintSfx();
-
-  // ── Pulso ─────────────────────────────────────────────
-  const pulse = (event: Event) => {
-    window.dispatchEvent(new CustomEvent('world:pulse'));
-    const button = event.currentTarget as HTMLElement;
-    gsap.fromTo(
-      button,
-      { scale: 1 },
-      { scale: 0.9, duration: 0.08, yoyo: true, repeat: 1 },
-    );
-  };
-  document.getElementById('pulse-btn')?.addEventListener('click', pulse);
-  document.getElementById('pulse-btn-mobile')?.addEventListener('click', pulse);
 
   // ── Menú móvil ────────────────────────────────────────
   const openMenu = () => {
@@ -624,11 +598,6 @@ const copy = chapters.map((chapter) => ({
     color: var(--hud-accent);
     border-color: color-mix(in srgb, var(--hud-accent) 42%, transparent);
     background: color-mix(in srgb, var(--hud-accent) 10%, transparent);
-  }
-
-  .hud__tool--pulse {
-    color: var(--hud-accent);
-    border-color: color-mix(in srgb, var(--hud-accent) 30%, transparent);
   }
 
   .hud__icon {

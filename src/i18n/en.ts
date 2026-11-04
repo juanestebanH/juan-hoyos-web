@@ -73,10 +73,6 @@ export const en = {
         label: 'Backend',
         desc: 'Robust, secure business logic and APIs that are easy to maintain in production.',
       },
-      mvc: {
-        label: 'MVC architecture',
-        desc: 'Well-structured PHP/Laravel applications with separated concerns and a solid data model.',
-      },
       data: {
         label: 'Data',
         desc: 'Modeling, queries and persistence so the product rests on a reliable foundation.',
@@ -86,8 +82,8 @@ export const en = {
         desc: 'WebGL, animation and motion that turn a screen into a memorable experience.',
       },
       ui: {
-        label: 'UI / Design systems',
-        desc: 'Consistent visual systems that save time and keep the product coherent.',
+        label: 'Mobile / UI',
+        desc: 'Mobile apps and interfaces, from Kotlin and Ionic to consistent design systems.',
       },
     },
   },
